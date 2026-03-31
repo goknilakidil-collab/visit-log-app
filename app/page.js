@@ -48,7 +48,7 @@ const initialLogs = [
     monthlyOpportunity: "120000",
     yearlyOpportunity: "1440000",
     notWorkingReason: "",
-    responsibleKAM: "Göknil Akidil",
+    responsibleChoose KAM: "Göknil Akidil",
     result: "Revised offer to be shared",
     followUp: "2026-04-07",
     notes:
@@ -71,7 +71,7 @@ const initialLogs = [
     monthlyOpportunity: "52500",
     yearlyOpportunity: "630000",
     notWorkingReason: "",
-    responsibleKAM: "Göknil Akidil",
+    responsibleChoose KAM: "Göknil Akidil",
     result: "Follow-up visit planned",
     followUp: "2026-04-04",
     notes:
@@ -94,7 +94,7 @@ const initialLogs = [
     monthlyOpportunity: "",
     yearlyOpportunity: "",
     notWorkingReason: "Approval process pending",
-    responsibleKAM: "Göknil Akidil",
+    responsibleChoose KAM: "Göknil Akidil",
     result: "Management-level follow-up required",
     followUp: "",
     notes:
@@ -118,7 +118,7 @@ const emptyForm = {
   monthlyOpportunity: "",
   yearlyOpportunity: "",
   notWorkingReason: "",
-  responsibleKAM: "",
+  responsibleChoose KAM: "",
   result: "",
   followUp: "",
   notes: "",
@@ -397,7 +397,7 @@ function mapExcelRowToLog(row, fallbackIndex = 0) {
     monthlyOpportunity: String(row.monthly_opportunity || row.monthlyOpportunity || ""),
     yearlyOpportunity: String(row.yearly_opportunity || row.yearlyOpportunity || ""),
     notWorkingReason: String(row.not_working_reason || row.notWorkingReason || ""),
-    responsibleKAM: String(row.responsible_kam || row.responsibleKAM || ""),
+    responsibleChoose KAM: String(row.responsible_Choose KAM || row.responsibleChoose KAM || ""),
     result: String(row.result || ""),
     followUp: normalizeExcelDate(row.follow_up || row.followUp),
     notes: String(row.notes || ""),
@@ -443,7 +443,7 @@ export default function VisitLogModule() {
           item.salesperson,
           item.brand,
           item.result,
-          item.responsibleKAM,
+          item.responsibleChoose KAM,
         ]
           .join(" ")
           .toLowerCase()
@@ -474,7 +474,7 @@ export default function VisitLogModule() {
       .map((x) => ({
         id: x.id,
         customer: x.customer,
-        owner: x.responsibleKAM || "Unassigned",
+        owner: x.responsibleChoose KAM || "Unassigned",
         due: x.followUp || "-",
         priority:
           x.result === "Management-level follow-up required" ? "High" : "Medium",
@@ -504,7 +504,7 @@ Brand(s): ${selectedLog.brand || "-"}
 Purpose: ${selectedLog.purpose || "-"}
 Result: ${selectedLog.result || "-"}
 Follow-up Date: ${selectedLog.followUp || "-"}
-Responsible KAM: ${selectedLog.responsibleKAM || "-"}
+Responsible Choose KAM: ${selectedLog.responsibleChoose KAM || "-"}
 
 Summary Notes:
 ${selectedLog.notes || "-"}
@@ -774,7 +774,7 @@ Best regards`;
             marginBottom: 20,
           }}
         >
-          <KpiCard label="Toplam Visit" value={kpis.total} />
+          <KpiCard label="Total Visit" value={kpis.total} />
           <KpiCard label="Follow-up" value={kpis.followUps} />
           <KpiCard label="Order Expected" value={kpis.orderExpected} />
           <KpiCard label="Critical" value={kpis.critical} />
@@ -809,7 +809,7 @@ Best regards`;
             <TabButton
               active={activeTab === "ai"}
               onClick={() => setActiveTab("ai")}
-            >
+            > 
               AI Insights
             </TabButton>
             <TabButton
@@ -825,7 +825,7 @@ Best regards`;
           <div style={{ marginBottom: 14 }}>
             <h3 style={{ margin: 0 }}>Filters</h3>
             <div style={{ color: "#6b7280", fontSize: 13, marginTop: 6 }}>
-              Tarih aralığı, salesperson ve brand bazında filtreleme
+              Date, salesperson and brand based filter
             </div>
           </div>
 
@@ -924,9 +924,9 @@ Best regards`;
             }}
           >
             <div style={cardStyle()}>
-              <h2 style={{ marginTop: 0 }}>Yeni Visit Log Girişi</h2>
+              <h2 style={{ marginTop: 0 }}>New Visit Log </h2>
               <p style={{ color: "#6b7280", marginTop: -6, marginBottom: 18 }}>
-                Ziyaret sonrası standart veri girişi, fırsat takibi ve aksiyon üretimi.
+                Post visit notes, opportunity follow-up and action tracker.
               </p>
 
               <div
@@ -937,7 +937,7 @@ Best regards`;
                   gap: 14,
                 }}
               >
-                <Field label="Ziyaret Tarihi">
+                <Field label="Date of Visit">
                   <input
                     type="date"
                     value={form.date}
@@ -951,7 +951,7 @@ Best regards`;
                     value={form.salesperson}
                     onChange={(e) => updateForm("salesperson", e.target.value)}
                     style={inputStyle()}
-                    placeholder="Seçiniz"
+                    placeholder="Choose"
                   />
                 </Field>
 
@@ -960,7 +960,7 @@ Best regards`;
                     value={form.customer}
                     onChange={(e) => updateForm("customer", e.target.value)}
                     style={inputStyle()}
-                    placeholder="Firma adı"
+                    placeholder="Company Name"
                   />
                 </Field>
 
@@ -987,7 +987,7 @@ Best regards`;
                     value={form.allBrands}
                     onChange={(e) => updateForm("allBrands", e.target.value)}
                     style={inputStyle()}
-                    placeholder="Diğer markalar"
+                    placeholder="Other Brands"
                   />
                 </Field>
 
@@ -996,7 +996,7 @@ Best regards`;
                     value={form.monthlyCapacity}
                     onChange={(e) => updateForm("monthlyCapacity", e.target.value)}
                     style={inputStyle()}
-                    placeholder="Aylık adet"
+                    placeholder="Monthly Garment QTY"
                   />
                 </Field>
 
@@ -1005,7 +1005,7 @@ Best regards`;
                     value={form.employeeCount}
                     onChange={(e) => updateForm("employeeCount", e.target.value)}
                     style={inputStyle()}
-                    placeholder="Kaç kişi çalışıyor"
+                    placeholder="Number of Employees"
                   />
                 </Field>
 
@@ -1015,7 +1015,7 @@ Best regards`;
                     onChange={(e) => updateForm("inhouseProduction", e.target.value)}
                     style={inputStyle()}
                   >
-                    <option value="">Seçiniz</option>
+                    <option value="">Choose</option>
                     <option>Yes</option>
                     <option>No</option>
                   </select>
@@ -1026,7 +1026,7 @@ Best regards`;
                     value={form.subcontractorQty}
                     onChange={(e) => updateForm("subcontractorQty", e.target.value)}
                     style={inputStyle()}
-                    placeholder="Adet"
+                    placeholder="QTY"
                   />
                 </Field>
 
@@ -1037,7 +1037,7 @@ Best regards`;
                       updateForm("subcontractorLocations", e.target.value)
                     }
                     style={inputStyle()}
-                    placeholder="Lokasyon bilgisi"
+                    placeholder="City Information"
                   />
                 </Field>
 
@@ -1047,7 +1047,7 @@ Best regards`;
                     onChange={(e) => updateForm("purpose", e.target.value)}
                     style={inputStyle()}
                   >
-                    <option value="">Seçiniz</option>
+                    <option value="">Choose</option>
                     {purposes.map((item) => (
                       <option key={item} value={item}>
                         {item}
@@ -1083,16 +1083,16 @@ Best regards`;
                     value={form.notWorkingReason}
                     onChange={(e) => updateForm("notWorkingReason", e.target.value)}
                     style={inputStyle()}
-                    placeholder="Sebep"
+                    placeholder="Reason"
                   />
                 </Field>
 
-                <Field label="Responsible KAM">
+                <Field label="Responsible Choose KAM">
                   <input
-                    value={form.responsibleKAM}
-                    onChange={(e) => updateForm("responsibleKAM", e.target.value)}
+                    value={form.responsibleChoose KAM}
+                    onChange={(e) => updateForm("responsibleChoose KAM", e.target.value)}
                     style={inputStyle()}
-                    placeholder="KAM seçiniz"
+                    placeholder="Choose KAM Choose"
                   />
                 </Field>
 
@@ -1102,7 +1102,7 @@ Best regards`;
                     onChange={(e) => updateForm("result", e.target.value)}
                     style={inputStyle()}
                   >
-                    <option value="">Seçiniz</option>
+                    <option value="">Choose</option>
                     {visitResults.map((item) => (
                       <option key={item} value={item}>
                         {item}
@@ -1127,7 +1127,7 @@ Best regards`;
                   value={form.notes}
                   onChange={(e) => updateForm("notes", e.target.value)}
                   style={{ ...inputStyle(), minHeight: 140, resize: "vertical" }}
-                  placeholder="Ziyaret notu, sipariş potansiyeli, riskler, aksiyonlar..."
+                  placeholder="Visit Log, Order Potential, Risks, Actions..."
                 />
               </div>
             </div>
@@ -1143,14 +1143,14 @@ Best regards`;
               </div>
 
               <div style={cardStyle()}>
-                <h3 style={{ marginTop: 0 }}>Bu Modülde Var</h3>
-                <MiniStat label="Form girişi" value="Aktif" />
-                <MiniStat label="Listeleme" value="Aktif" />
+                <h3 style={{ marginTop: 0 }}>In This Module</h3>
+                <MiniStat label="Data Entry" value="Activated" />
+                <MiniStat label="Listing" value="Activated" />
                 <MiniStat
                   label="Action Tracker"
-                  value={`${actionItems.length} kayıt`}
+                  value={`${actionItems.length} Logs`}
                 />
-                <MiniStat label="Mail summary" value="Aktif" />
+                <MiniStat label="Mail summary" value="Activated" />
               </div>
             </div>
           </div>
@@ -1257,8 +1257,8 @@ Best regards`;
                   <Detail label="Result" value={selectedLog.result || "-"} />
                   <Detail label="Follow-up" value={selectedLog.followUp || "-"} />
                   <Detail
-                    label="Responsible KAM"
-                    value={selectedLog.responsibleKAM || "-"}
+                    label="Responsible Choose KAM"
+                    value={selectedLog.responsibleChoose KAM || "-"}
                   />
                   <Detail
                     label="Yearly Opportunity"
