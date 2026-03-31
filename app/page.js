@@ -502,7 +502,7 @@ Best regards`;
     <main
       style={{
         minHeight: "100vh",
-        background: "#f8fafc",
+        background: "#dc2626",
         color: "#111827",
         fontFamily:
           'Inter, Arial, Helvetica, ui-sans-serif, system-ui, sans-serif',
