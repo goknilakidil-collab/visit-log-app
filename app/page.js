@@ -48,7 +48,7 @@ const initialLogs = [
     monthlyOpportunity: "120000",
     yearlyOpportunity: "1440000",
     notWorkingReason: "",
-    responsibleChoose KAM: "Göknil Akidil",
+    responsibleChooseKAM: "Göknil Akidil",
     result: "Revised offer to be shared",
     followUp: "2026-04-07",
     notes:
@@ -71,7 +71,7 @@ const initialLogs = [
     monthlyOpportunity: "52500",
     yearlyOpportunity: "630000",
     notWorkingReason: "",
-    responsibleChoose KAM: "Göknil Akidil",
+    responsibleChooseKAM: "Göknil Akidil",
     result: "Follow-up visit planned",
     followUp: "2026-04-04",
     notes:
@@ -94,7 +94,7 @@ const initialLogs = [
     monthlyOpportunity: "",
     yearlyOpportunity: "",
     notWorkingReason: "Approval process pending",
-    responsibleChoose KAM: "Göknil Akidil",
+    responsibleChooseKAM: "Göknil Akidil",
     result: "Management-level follow-up required",
     followUp: "",
     notes:
@@ -118,7 +118,7 @@ const emptyForm = {
   monthlyOpportunity: "",
   yearlyOpportunity: "",
   notWorkingReason: "",
-  responsibleChoose KAM: "",
+  responsibleChooseKAM: "",
   result: "",
   followUp: "",
   notes: "",
@@ -397,7 +397,7 @@ function mapExcelRowToLog(row, fallbackIndex = 0) {
     monthlyOpportunity: String(row.monthly_opportunity || row.monthlyOpportunity || ""),
     yearlyOpportunity: String(row.yearly_opportunity || row.yearlyOpportunity || ""),
     notWorkingReason: String(row.not_working_reason || row.notWorkingReason || ""),
-    responsibleChoose KAM: String(row.responsible_Choose KAM || row.responsibleChoose KAM || ""),
+    responsibleChooseKAM: String(row.responsible_Choose KAM || row.responsibleChooseKAM || ""),
     result: String(row.result || ""),
     followUp: normalizeExcelDate(row.follow_up || row.followUp),
     notes: String(row.notes || ""),
@@ -443,7 +443,7 @@ export default function VisitLogModule() {
           item.salesperson,
           item.brand,
           item.result,
-          item.responsibleChoose KAM,
+          item.responsibleChooseKAM,
         ]
           .join(" ")
           .toLowerCase()
@@ -474,7 +474,7 @@ export default function VisitLogModule() {
       .map((x) => ({
         id: x.id,
         customer: x.customer,
-        owner: x.responsibleChoose KAM || "Unassigned",
+        owner: x.responsibleChooseKAM || "Unassigned",
         due: x.followUp || "-",
         priority:
           x.result === "Management-level follow-up required" ? "High" : "Medium",
@@ -504,7 +504,7 @@ Brand(s): ${selectedLog.brand || "-"}
 Purpose: ${selectedLog.purpose || "-"}
 Result: ${selectedLog.result || "-"}
 Follow-up Date: ${selectedLog.followUp || "-"}
-Responsible Choose KAM: ${selectedLog.responsibleChoose KAM || "-"}
+Responsible Choose KAM: ${selectedLog.responsibleChooseKAM || "-"}
 
 Summary Notes:
 ${selectedLog.notes || "-"}
@@ -1089,8 +1089,8 @@ Best regards`;
 
                 <Field label="Responsible Choose KAM">
                   <input
-                    value={form.responsibleChoose KAM}
-                    onChange={(e) => updateForm("responsibleChoose KAM", e.target.value)}
+                    value={form.responsibleChooseKAM}
+                    onChange={(e) => updateForm("responsibleChooseKAM", e.target.value)}
                     style={inputStyle()}
                     placeholder="Choose KAM Choose"
                   />
@@ -1258,7 +1258,7 @@ Best regards`;
                   <Detail label="Follow-up" value={selectedLog.followUp || "-"} />
                   <Detail
                     label="Responsible Choose KAM"
-                    value={selectedLog.responsibleChoose KAM || "-"}
+                    value={selectedLog.responsibleChooseKAM || "-"}
                   />
                   <Detail
                     label="Yearly Opportunity"
