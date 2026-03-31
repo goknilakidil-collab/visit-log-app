@@ -397,7 +397,7 @@ function mapExcelRowToLog(row, fallbackIndex = 0) {
     monthlyOpportunity: String(row.monthly_opportunity || row.monthlyOpportunity || ""),
     yearlyOpportunity: String(row.yearly_opportunity || row.yearlyOpportunity || ""),
     notWorkingReason: String(row.not_working_reason || row.notWorkingReason || ""),
-    responsibleChooseKAM: String(row.responsible_Choose KAM || row.responsibleChooseKAM || ""),
+    responsibleChooseKAM: String(row.responsible_ChooseKAM || row.responsibleChooseKAM || ""),
     result: String(row.result || ""),
     followUp: normalizeExcelDate(row.follow_up || row.followUp),
     notes: String(row.notes || ""),
@@ -504,7 +504,7 @@ Brand(s): ${selectedLog.brand || "-"}
 Purpose: ${selectedLog.purpose || "-"}
 Result: ${selectedLog.result || "-"}
 Follow-up Date: ${selectedLog.followUp || "-"}
-Responsible Choose KAM: ${selectedLog.responsibleChooseKAM || "-"}
+ResponsibleChooseKAM: ${selectedLog.responsibleChooseKAM || "-"}
 
 Summary Notes:
 ${selectedLog.notes || "-"}
@@ -1087,7 +1087,7 @@ Best regards`;
                   />
                 </Field>
 
-                <Field label="Responsible Choose KAM">
+                <Field label="ResponsibleChooseKAM">
                   <input
                     value={form.responsibleChooseKAM}
                     onChange={(e) => updateForm("responsibleChooseKAM", e.target.value)}
@@ -1257,7 +1257,7 @@ Best regards`;
                   <Detail label="Result" value={selectedLog.result || "-"} />
                   <Detail label="Follow-up" value={selectedLog.followUp || "-"} />
                   <Detail
-                    label="Responsible Choose KAM"
+                    label="ResponsibleChooseKAM"
                     value={selectedLog.responsibleChooseKAM || "-"}
                   />
                   <Detail
