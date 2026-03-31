@@ -22,13 +22,6 @@ const purposes = [
   "Sales Opportunity (Call)",
 ];
 
-const criticalResults = [
-  "Close follow-up required",
-  "Order expected",
-  "Revised offer to be shared",
-  "Management-level follow-up required",
-];
-
 const initialLogs = [
   {
     id: "V0041",
@@ -36,22 +29,14 @@ const initialLogs = [
     salesperson: "Özlem Köseoğlu",
     customer: "SBS Tekstil",
     brand: "Zara, Pull&Bear",
-    segment: "Denim",
-    allBrands: "Bershka, Stradivarius",
-    monthlyCapacity: "220000",
-    employeeCount: "850",
-    inhouseProduction: "Yes",
-    subcontractorQty: "3",
-    subcontractorLocations: "Bursa, Çorlu",
     purpose: "Sales Opportunity",
-    monthlyOpportunity: "120000",
-    yearlyOpportunity: "1440000",
-    notWorkingReason: "",
-    responsibleKAM: "Göknil Akidil",
     result: "Revised offer to be shared",
     followUp: "2026-04-07",
+    monthlyOpportunity: "120000",
+    yearlyOpportunity: "1440000",
+    responsibleKAM: "Göknil Akidil",
     notes:
-      "Care label ve woven label tarafında potansiyel mevcut. Fiyat revizyonu bekleniyor. Rakipte servis problemi olduğu paylaşıldı.",
+      "Care label ve woven label tarafında potansiyel mevcut. Fiyat revizyonu bekleniyor. Rakipte servis problemi olduğu paylaşıldı. Sample sonrası hızlı karar verebileceklerini söylediler.",
   },
   {
     id: "V0040",
@@ -59,414 +44,244 @@ const initialLogs = [
     salesperson: "İsmail Güneş",
     customer: "Dima Tekstil",
     brand: "Zara",
-    segment: "Outerwear",
-    allBrands: "Massimo Dutti",
-    monthlyCapacity: "95000",
-    employeeCount: "420",
-    inhouseProduction: "No",
-    subcontractorQty: "5",
-    subcontractorLocations: "İzmir, Denizli",
     purpose: "Routine Visit / Status Check",
-    monthlyOpportunity: "52500",
-    yearlyOpportunity: "630000",
-    notWorkingReason: "",
-    responsibleKAM: "Göknil Akidil",
     result: "Follow-up visit planned",
     followUp: "2026-04-04",
+    monthlyOpportunity: "52500",
+    yearlyOpportunity: "630000",
+    responsibleKAM: "Göknil Akidil",
     notes:
       "Rutin ziyaret yapıldı. Önümüzdeki hafta sample durumu ve termin beklentisi için tekrar görüşülecek.",
-  },
-  {
-    id: "V0039",
-    date: "2026-02-26",
-    salesperson: "Özlem Köseoğlu",
-    customer: "Hugo Boss",
-    brand: "Hugo Boss",
-    segment: "Premium",
-    allBrands: "-",
-    monthlyCapacity: "",
-    employeeCount: "",
-    inhouseProduction: "Yes",
-    subcontractorQty: "",
-    subcontractorLocations: "",
-    purpose: "Sales Opportunity (Call)",
-    monthlyOpportunity: "",
-    yearlyOpportunity: "",
-    notWorkingReason: "Approval process pending",
-    responsibleKAM: "Göknil Akidil",
-    result: "Management-level follow-up required",
-    followUp: "",
-    notes:
-      "Karar süreci yavaş ilerliyor. Bir sonraki iletişim üst yönetim seviyesinde yapılmalı.",
   },
 ];
 
 const emptyForm = {
-  date: "",
+  date: new Date().toISOString().slice(0, 10),
   salesperson: "",
   customer: "",
   brand: "",
-  segment: "",
-  allBrands: "",
-  monthlyCapacity: "",
-  employeeCount: "",
-  inhouseProduction: "",
-  subcontractorQty: "",
-  subcontractorLocations: "",
   purpose: "",
-  monthlyOpportunity: "",
-  yearlyOpportunity: "",
-  notWorkingReason: "",
-  responsibleKAM: "",
   result: "",
   followUp: "",
+  monthlyOpportunity: "",
+  yearlyOpportunity: "",
+  responsibleKAM: "",
   notes: "",
 };
 
-function cardStyle() {
-  return {
-    background: "#fff",
-    border: "1px solid #e5e7eb",
-    borderRadius: 20,
-    padding: 20,
-    boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
-  };
-}
+function aiAnalyze(form) {
+  const text = `${form.notes || ""} ${form.result || ""} ${form.purpose || ""}`.toLowerCase();
 
-function inputStyle() {
-  return {
-    width: "100%",
-    padding: "10px 12px",
-    borderRadius: 12,
-    border: "1px solid #d1d5db",
-    fontSize: 14,
-    boxSizing: "border-box",
-    outline: "none",
-  };
-}
+  let score = 52;
+  const reasons = [];
+  const risks = [];
+  const actions = [];
 
-function labelStyle() {
-  return {
-    fontSize: 13,
-    fontWeight: 600,
-    marginBottom: 6,
-    display: "block",
-    color: "#374151",
-  };
-}
+  if (text.includes("sample")) {
+    score += 8;
+    reasons.push("Müşteri sample üzerinden ilerlemeye açık görünüyor.");
+    actions.push("Sample planını tarih ve sorumlu ile netleştir.");
+  }
 
-function badgeStyle(result) {
-  const map = {
-    "Follow-up visit planned": { bg: "#dbeafe", color: "#1d4ed8" },
-    "Close follow-up required": { bg: "#fef3c7", color: "#b45309" },
-    "Customer will be called": { bg: "#e5e7eb", color: "#374151" },
-    "Order expected": { bg: "#d1fae5", color: "#047857" },
-    "Regular visit required": { bg: "#ede9fe", color: "#6d28d9" },
-    "Revised offer to be shared": { bg: "#ffedd5", color: "#c2410c" },
-    "Put on hold": { bg: "#ffe4e6", color: "#be123c" },
-    "Management-level follow-up required": { bg: "#fee2e2", color: "#b91c1c" },
-  };
-  return map[result] || { bg: "#e5e7eb", color: "#111827" };
-}
+  if (
+    text.includes("fiyat") ||
+    text.includes("revizyon") ||
+    text.includes("price")
+  ) {
+    score += 6;
+    risks.push("Fiyat hassasiyeti yüksek olabilir.");
+    actions.push("Revize teklif sunarken servis ve lead time avantajını birlikte vurgula.");
+  }
 
-const primaryButton = {
-  background: "#111827",
-  color: "#fff",
-  border: "none",
-  borderRadius: 12,
-  padding: "10px 14px",
-  fontWeight: 700,
-  cursor: "pointer",
-};
+  if (text.includes("rakip") || text.includes("servis problemi")) {
+    score += 10;
+    reasons.push("Rakip zafiyeti var; bu fırsat penceresi yaratıyor.");
+    actions.push("Rakibe kıyasla teslimat güveni ve servis hızını öne çıkar.");
+  }
 
-const secondaryButton = {
-  background: "#fff",
-  color: "#111827",
-  border: "1px solid #d1d5db",
-  borderRadius: 12,
-  padding: "10px 14px",
-  fontWeight: 700,
-  cursor: "pointer",
-};
+  if (text.includes("bekliyor") || text.includes("pending")) {
+    risks.push("Karar süreci uzayabilir.");
+  }
 
-export default function VisitLogModule() {
-  const [activeTab, setActiveTab] = useState("entry");
-  const [logs, setLogs] = useState(initialLogs);
-  const [selectedLog, setSelectedLog] = useState(initialLogs[0] || null);
-  const [search, setSearch] = useState("");
-  const [message, setMessage] = useState("");
-  const [messageType, setMessageType] = useState("success");
-  const [form, setForm] = useState({
-    ...emptyForm,
-    date: new Date().toISOString().slice(0, 10),
-  });
+  if (text.includes("order") || text.includes("sipariş")) {
+    score += 10;
+    reasons.push("Siparişe dönüşme sinyali mevcut.");
+  }
 
-  const filteredLogs = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    if (!q) return logs;
+  if (form.result === "Order expected") {
+    score += 14;
+    actions.push("PO kapanışı için net tarih al ve iç ekipleri önceden hizala.");
+  }
 
-    return logs.filter((item) =>
-      [
-        item.id,
-        item.customer,
-        item.salesperson,
-        item.brand,
-        item.result,
-        item.responsibleKAM,
-      ]
-        .join(" ")
-        .toLowerCase()
-        .includes(q)
-    );
-  }, [logs, search]);
+  if (form.result === "Management-level follow-up required") {
+    score -= 6;
+    risks.push("Kararın üst yönetim seviyesinde tıkanma ihtimali var.");
+    actions.push("Üst yönetim toplantısı için net agenda ve ticari teklif hazırla.");
+  }
 
-  const kpis = useMemo(() => {
-    return {
-      total: logs.length,
-      followUps: logs.filter((x) => x.followUp).length,
-      orderExpected: logs.filter((x) => x.result === "Order expected").length,
-      critical: logs.filter((x) => criticalResults.includes(x.result)).length,
-    };
-  }, [logs]);
+  if (!form.followUp) {
+    score -= 8;
+    risks.push("Follow-up tarihi tanımlı değil.");
+    actions.push("İlk iş olarak bir follow-up tarihi belirle.");
+  }
 
-  const actionItems = useMemo(() => {
-    return logs
-      .filter((x) => criticalResults.includes(x.result))
-      .map((x) => ({
-        id: x.id,
-        customer: x.customer,
-        owner: x.responsibleKAM || "Unassigned",
-        due: x.followUp || "-",
-        priority:
-          x.result === "Management-level follow-up required" ? "High" : "Medium",
-        action:
-          x.result === "Revised offer to be shared"
-            ? "Share revised quotation"
-            : x.result === "Order expected"
-              ? "Secure PO and shipment timing"
-              : x.result === "Management-level follow-up required"
-                ? "Escalate to management"
-                : "Close follow-up with customer",
-      }));
-  }, [logs]);
+  score = Math.max(25, Math.min(92, score));
 
-  const mailOutput = useMemo(() => {
-    if (!selectedLog) return "";
+  const priority = score >= 75 ? "High" : score >= 60 ? "Medium" : "Normal";
+  const nextStep =
+    actions[0] || "Müşteriyle bir sonraki adımı netleştir ve iç ekiplerle paylaş.";
 
-    return `Subject: Visit Summary - ${selectedLog.customer} - ${selectedLog.date}
+  const mail = `Dear Team,
 
-Dear Team,
+AI review based on the latest visit note suggests a ${priority.toLowerCase()} priority follow-up for ${
+    form.customer || "this customer"
+  }.
 
-Please find below the summary of today's visit.
-
-Customer: ${selectedLog.customer}
-Salesperson: ${selectedLog.salesperson}
-Brand(s): ${selectedLog.brand || "-"}
-Purpose: ${selectedLog.purpose || "-"}
-Result: ${selectedLog.result || "-"}
-Follow-up Date: ${selectedLog.followUp || "-"}
-Responsible KAM: ${selectedLog.responsibleKAM || "-"}
-
-Summary Notes:
-${selectedLog.notes || "-"}
-
-Commercial Opportunity:
-Monthly: ${selectedLog.monthlyOpportunity || "-"} HKD
-Yearly: ${selectedLog.yearlyOpportunity || "-"} HKD
+Recommended next action: ${nextStep}
+Win probability score: ${score}/100
+Main risk: ${risks[0] || "No major risk flagged"}
 
 Best regards`;
-  }, [selectedLog]);
 
-  function showMessage(text, type = "success") {
-    setMessage(text);
-    setMessageType(type);
-  }
+  return {
+    score,
+    priority,
+    summary:
+      reasons[0] ||
+      "Not içeriğine göre müşteriyle ilerleme fırsatı mevcut, ancak takip disiplini kritik.",
+    reasons: reasons.length ? reasons : ["Müşteriyle ilerleme sinyali var."],
+    risks: risks.length ? risks : ["Belirgin kritik risk işaretlenmedi."],
+    actions: actions.length ? actions : ["Kısa bir follow-up planı oluştur."],
+    nextStep,
+    suggestedMail: mail,
+  };
+}
+
+export default function VisitLogAIModule() {
+  const [activeTab, setActiveTab] = useState("entry");
+  const [logs, setLogs] = useState(initialLogs);
+  const [selectedLog, setSelectedLog] = useState(initialLogs[0]);
+  const [form, setForm] = useState(emptyForm);
+  const [message, setMessage] = useState("");
+
+  const aiOutput = useMemo(() => aiAnalyze(form), [form]);
+  const selectedAI = useMemo(
+    () => aiAnalyze(selectedLog || emptyForm),
+    [selectedLog]
+  );
 
   function updateForm(key, value) {
     setForm((prev) => {
       const next = { ...prev, [key]: value };
-
       if (key === "monthlyOpportunity") {
-        const num = Number(value || 0);
-        next.yearlyOpportunity = num > 0 ? String(num * 12) : "";
+        const monthly = Number(value || 0);
+        next.yearlyOpportunity = monthly > 0 ? String(monthly * 12) : "";
       }
-
       return next;
     });
   }
 
-  function resetForm() {
+  function saveVisit() {
+    if (!form.customer || !form.salesperson || !form.purpose || !form.result) {
+      setMessage("Customer, Salesperson, Purpose ve Result zorunlu.");
+      return;
+    }
+
+    const record = {
+      ...form,
+      id: `V${String(logs.length + 42).padStart(4, "0")}`,
+    };
+
+    setLogs([record, ...logs]);
+    setSelectedLog(record);
+    setMessage(`${record.id} kaydedildi. AI tavsiyesi üretildi.`);
     setForm({
       ...emptyForm,
       date: new Date().toISOString().slice(0, 10),
     });
+    setActiveTab("ai");
   }
 
-  function saveLog() {
-    if (!form.customer || !form.salesperson || !form.purpose || !form.result) {
-      showMessage(
-        "Customer, Salesperson, Purpose of Visit ve Visit Result zorunlu.",
-        "error"
-      );
-      setActiveTab("entry");
-      return;
-    }
-
-    if (criticalResults.includes(form.result) && !form.followUp) {
-      showMessage("Kritik sonuçlar için Next Follow-up zorunlu.", "error");
-      setActiveTab("entry");
-      return;
-    }
-
-    const nextId = `V${String(logs.length + 40).padStart(4, "0")}`;
-    const record = { ...form, id: nextId };
-    const nextLogs = [record, ...logs];
-
-    setLogs(nextLogs);
-    setSelectedLog(record);
-    resetForm();
-    showMessage(`${nextId} kaydedildi.`);
-    setActiveTab("list");
+  function copyText(text) {
+    navigator.clipboard.writeText(text);
+    setMessage("Kopyalandı.");
   }
 
-  function copyMailOutput() {
-    if (!mailOutput) return;
-
-    navigator.clipboard.writeText(mailOutput);
-    showMessage("Mail özeti kopyalandı.");
-  }
+  const averageScore =
+    logs.length > 0
+      ? Math.round(logs.reduce((a, b) => a + aiAnalyze(b).score, 0) / logs.length)
+      : 0;
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "#f8fafc",
-        color: "#111827",
-        fontFamily:
-          'Inter, Arial, Helvetica, ui-sans-serif, system-ui, sans-serif',
-        padding: 24,
-      }}
-    >
-      <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-        <div
-          style={{
-            ...cardStyle(),
-            marginBottom: 20,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 12,
-            flexWrap: "wrap",
-          }}
-        >
+    <div className="page-shell">
+      <div className="container">
+        <div className="header-card">
           <div>
-            <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 6 }}>
-              Sales App / Visit Management
-            </div>
-            <h1 style={{ margin: 0, fontSize: 28 }}>Visit Log Module</h1>
+            <div className="eyebrow">Visit Management + AI Assistant</div>
+            <h1>Visit Log AI Module</h1>
           </div>
-
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <button style={secondaryButton}>Excel Import</button>
-            <button style={primaryButton} onClick={saveLog}>
-              Save Visit Log
+          <div className="header-actions">
+            <button className="btn btn-secondary">Export</button>
+            <button onClick={saveVisit} className="btn btn-primary">
+              Save Visit
             </button>
           </div>
         </div>
 
-        <div
-          className="kpi-grid"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-            gap: 16,
-            marginBottom: 20,
-          }}
-        >
-          <KpiCard label="Toplam Visit" value={kpis.total} />
-          <KpiCard label="Follow-up" value={kpis.followUps} />
-          <KpiCard label="Order Expected" value={kpis.orderExpected} />
-          <KpiCard label="Critical" value={kpis.critical} />
+        <div className="kpi-grid">
+          {[
+            ["Visit Count", logs.length],
+            [
+              "AI Priority High",
+              logs.filter((x) => aiAnalyze(x).priority === "High").length,
+            ],
+            ["Avg Win Score", averageScore],
+            ["Action Items", logs.reduce((a, b) => a + aiAnalyze(b).actions.length, 0)],
+            ["Risk Flags", logs.reduce((a, b) => a + aiAnalyze(b).risks.length, 0)],
+          ].map(([label, value]) => (
+            <div key={label} className="kpi-card">
+              <div className="kpi-label">{label}</div>
+              <div className="kpi-value">{value}</div>
+            </div>
+          ))}
         </div>
 
-        <div style={{ ...cardStyle(), marginBottom: 20, padding: 12 }}>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <TabButton
-              active={activeTab === "entry"}
-              onClick={() => setActiveTab("entry")}
-            >
-              Visit Entry
-            </TabButton>
-            <TabButton
-              active={activeTab === "list"}
-              onClick={() => setActiveTab("list")}
-            >
-              Visit List
-            </TabButton>
-            <TabButton
-              active={activeTab === "actions"}
-              onClick={() => setActiveTab("actions")}
-            >
-              Action Tracker
-            </TabButton>
-            <TabButton
-              active={activeTab === "mail"}
-              onClick={() => setActiveTab("mail")}
-            >
-              Mail Output
-            </TabButton>
+        <div className="tabs-card">
+          <div className="tabs-row">
+            {[
+              ["entry", "Visit Entry"],
+              ["ai", "AI Recommendation"],
+              ["list", "Visit List"],
+              ["mail", "Suggested Mail"],
+            ].map(([key, label]) => (
+              <button
+                key={key}
+                onClick={() => setActiveTab(key)}
+                className={`tab-btn ${activeTab === key ? "active" : ""}`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
 
-        {message ? (
-          <div
-            style={{
-              marginBottom: 20,
-              background: messageType === "error" ? "#fef2f2" : "#ecfdf5",
-              border:
-                messageType === "error"
-                  ? "1px solid #fecaca"
-                  : "1px solid #a7f3d0",
-              color: messageType === "error" ? "#b91c1c" : "#065f46",
-              borderRadius: 14,
-              padding: 14,
-              fontSize: 14,
-            }}
-          >
-            {message}
-          </div>
-        ) : null}
+        {message ? <div className="message-box">{message}</div> : null}
 
         {activeTab === "entry" && (
-          <div
-            className="main-grid"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "2fr 1fr",
-              gap: 20,
-              alignItems: "start",
-            }}
-          >
-            <div style={cardStyle()}>
-              <h2 style={{ marginTop: 0 }}>Yeni Visit Log Girişi</h2>
-              <p style={{ color: "#6b7280", marginTop: -6, marginBottom: 18 }}>
-                Ziyaret sonrası standart veri girişi, fırsat takibi ve aksiyon üretimi.
+          <div className="main-grid">
+            <div className="card">
+              <h2>Visit Entry</h2>
+              <p className="subtext">
+                Kaydetmeden önce AI tavsiyesini sağ panelde anlık gör.
               </p>
 
-              <div
-                className="form-grid"
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: 14,
-                }}
-              >
-                <Field label="Ziyaret Tarihi">
+              <div className="form-grid">
+                <Field label="Date">
                   <input
                     type="date"
                     value={form.date}
                     onChange={(e) => updateForm("date", e.target.value)}
-                    style={inputStyle()}
+                    className="input"
                   />
                 </Field>
 
@@ -474,8 +289,7 @@ Best regards`;
                   <input
                     value={form.salesperson}
                     onChange={(e) => updateForm("salesperson", e.target.value)}
-                    style={inputStyle()}
-                    placeholder="Seçiniz"
+                    className="input"
                   />
                 </Field>
 
@@ -483,85 +297,15 @@ Best regards`;
                   <input
                     value={form.customer}
                     onChange={(e) => updateForm("customer", e.target.value)}
-                    style={inputStyle()}
-                    placeholder="Firma adı"
+                    className="input"
                   />
                 </Field>
 
-                <Field label="Target Brand">
+                <Field label="Brand">
                   <input
                     value={form.brand}
                     onChange={(e) => updateForm("brand", e.target.value)}
-                    style={inputStyle()}
-                    placeholder="Zara, Next, M&S..."
-                  />
-                </Field>
-
-                <Field label="Segment">
-                  <input
-                    value={form.segment}
-                    onChange={(e) => updateForm("segment", e.target.value)}
-                    style={inputStyle()}
-                    placeholder="Tricot, Denim, Socks..."
-                  />
-                </Field>
-
-                <Field label="All Brands Customer Working">
-                  <input
-                    value={form.allBrands}
-                    onChange={(e) => updateForm("allBrands", e.target.value)}
-                    style={inputStyle()}
-                    placeholder="Diğer markalar"
-                  />
-                </Field>
-
-                <Field label="Monthly Production Capacity">
-                  <input
-                    value={form.monthlyCapacity}
-                    onChange={(e) => updateForm("monthlyCapacity", e.target.value)}
-                    style={inputStyle()}
-                    placeholder="Aylık adet"
-                  />
-                </Field>
-
-                <Field label="Factory Employee Count">
-                  <input
-                    value={form.employeeCount}
-                    onChange={(e) => updateForm("employeeCount", e.target.value)}
-                    style={inputStyle()}
-                    placeholder="Kaç kişi çalışıyor"
-                  />
-                </Field>
-
-                <Field label="Inhouse Production">
-                  <select
-                    value={form.inhouseProduction}
-                    onChange={(e) => updateForm("inhouseProduction", e.target.value)}
-                    style={inputStyle()}
-                  >
-                    <option value="">Seçiniz</option>
-                    <option>Yes</option>
-                    <option>No</option>
-                  </select>
-                </Field>
-
-                <Field label="Subcontractor QTY">
-                  <input
-                    value={form.subcontractorQty}
-                    onChange={(e) => updateForm("subcontractorQty", e.target.value)}
-                    style={inputStyle()}
-                    placeholder="Adet"
-                  />
-                </Field>
-
-                <Field label="Subcontractor Locations">
-                  <input
-                    value={form.subcontractorLocations}
-                    onChange={(e) =>
-                      updateForm("subcontractorLocations", e.target.value)
-                    }
-                    style={inputStyle()}
-                    placeholder="Lokasyon bilgisi"
+                    className="input"
                   />
                 </Field>
 
@@ -569,7 +313,7 @@ Best regards`;
                   <select
                     value={form.purpose}
                     onChange={(e) => updateForm("purpose", e.target.value)}
-                    style={inputStyle()}
+                    className="input"
                   >
                     <option value="">Seçiniz</option>
                     {purposes.map((item) => (
@@ -580,51 +324,11 @@ Best regards`;
                   </select>
                 </Field>
 
-                <Field label="Monthly Opportunity (HKD)">
-                  <input
-                    value={form.monthlyOpportunity}
-                    onChange={(e) =>
-                      updateForm("monthlyOpportunity", e.target.value)
-                    }
-                    style={inputStyle()}
-                    placeholder="0"
-                  />
-                </Field>
-
-                <Field label="Yearly Opportunity (HKD)">
-                  <input
-                    value={form.yearlyOpportunity}
-                    onChange={(e) =>
-                      updateForm("yearlyOpportunity", e.target.value)
-                    }
-                    style={inputStyle()}
-                    placeholder="0"
-                  />
-                </Field>
-
-                <Field label="If Not Working / Reason">
-                  <input
-                    value={form.notWorkingReason}
-                    onChange={(e) => updateForm("notWorkingReason", e.target.value)}
-                    style={inputStyle()}
-                    placeholder="Sebep"
-                  />
-                </Field>
-
-                <Field label="Responsible KAM">
-                  <input
-                    value={form.responsibleKAM}
-                    onChange={(e) => updateForm("responsibleKAM", e.target.value)}
-                    style={inputStyle()}
-                    placeholder="KAM seçiniz"
-                  />
-                </Field>
-
                 <Field label="Visit Result">
                   <select
                     value={form.result}
                     onChange={(e) => updateForm("result", e.target.value)}
-                    style={inputStyle()}
+                    className="input"
                   >
                     <option value="">Seçiniz</option>
                     {visitResults.map((item) => (
@@ -635,502 +339,634 @@ Best regards`;
                   </select>
                 </Field>
 
+                <Field label="Monthly Opportunity (HKD)">
+                  <input
+                    value={form.monthlyOpportunity}
+                    onChange={(e) => updateForm("monthlyOpportunity", e.target.value)}
+                    className="input"
+                  />
+                </Field>
+
+                <Field label="Yearly Opportunity (HKD)">
+                  <input
+                    value={form.yearlyOpportunity}
+                    onChange={(e) => updateForm("yearlyOpportunity", e.target.value)}
+                    className="input"
+                  />
+                </Field>
+
+                <Field label="Responsible KAM">
+                  <input
+                    value={form.responsibleKAM}
+                    onChange={(e) => updateForm("responsibleKAM", e.target.value)}
+                    className="input"
+                  />
+                </Field>
+
                 <Field label="Next Follow-up">
                   <input
                     type="date"
                     value={form.followUp}
                     onChange={(e) => updateForm("followUp", e.target.value)}
-                    style={inputStyle()}
+                    className="input"
                   />
                 </Field>
               </div>
 
-              <div style={{ marginTop: 16 }}>
-                <label style={labelStyle()}>Notes</label>
+              <div className="notes-wrap">
+                <label className="field-label">Visit Notes</label>
                 <textarea
                   value={form.notes}
                   onChange={(e) => updateForm("notes", e.target.value)}
-                  style={{ ...inputStyle(), minHeight: 140, resize: "vertical" }}
-                  placeholder="Ziyaret notu, sipariş potansiyeli, riskler, aksiyonlar..."
+                  className="input notes"
+                  placeholder="Müşteri notlarını yaz..."
                 />
               </div>
             </div>
 
-            <div style={{ display: "grid", gap: 20 }}>
-              <div style={cardStyle()}>
-                <h3 style={{ marginTop: 0 }}>İş Kuralları</h3>
-                <Checklist text="Customer, Salesperson, Purpose ve Result zorunlu" />
-                <Checklist text="Kritik sonuçlarda follow-up tarihi zorunlu" />
-                <Checklist text="Monthly girilirse yearly otomatik hesaplanır" />
-                <Checklist text="Kritik kayıtlar action tracker'a düşer" />
-                <Checklist text="Mail Output sekmesinde otomatik özet oluşur" />
+            <AIInsightPanel title="Live AI Preview" data={aiOutput} />
+          </div>
+        )}
+
+        {activeTab === "ai" && (
+          <div className="two-col-grid">
+            <div className="card">
+              <div className="panel-head">
+                <div>
+                  <h2>AI Recommendation</h2>
+                  <p className="subtext">Selected visit için öneri motoru</p>
+                </div>
+                <div
+                  className={`priority-badge ${
+                    selectedAI.priority === "High"
+                      ? "high"
+                      : selectedAI.priority === "Medium"
+                      ? "medium"
+                      : "normal"
+                  }`}
+                >
+                  {selectedAI.priority} Priority
+                </div>
               </div>
 
-              <div style={cardStyle()}>
-                <h3 style={{ marginTop: 0 }}>Bu Modülde Var</h3>
-                <MiniStat label="Form girişi" value="Aktif" />
-                <MiniStat label="Listeleme" value="Aktif" />
-                <MiniStat
-                  label="Action Tracker"
-                  value={`${actionItems.length} kayıt`}
+              <div className="score-box">
+                <div className="score-label">Win Probability Score</div>
+                <div className="score-value">
+                  {selectedAI.score}
+                  <span>/100</span>
+                </div>
+              </div>
+
+              <div className="stack">
+                <InfoCard title="AI Summary" content={selectedAI.summary} />
+                <InfoCard
+                  title="Recommended Next Step"
+                  content={selectedAI.nextStep}
                 />
-                <MiniStat label="Mail summary" value="Aktif" />
               </div>
             </div>
+
+            <AIInsightPanel
+              title={`Detailed AI Analysis${
+                selectedLog ? ` - ${selectedLog.customer}` : ""
+              }`}
+              data={selectedAI}
+            />
           </div>
         )}
 
         {activeTab === "list" && (
-          <div
-            className="two-col-grid"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1.2fr 0.8fr",
-              gap: 20,
-              alignItems: "start",
-            }}
-          >
-            <div style={cardStyle()}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: 12,
-                  flexWrap: "wrap",
-                  marginBottom: 14,
-                }}
-              >
-                <div>
-                  <h2 style={{ margin: 0 }}>Visit List</h2>
-                  <div style={{ color: "#6b7280", fontSize: 14, marginTop: 6 }}>
-                    Kayıtlar, filtre ve seçim ekranı
-                  </div>
-                </div>
+          <div className="two-col-grid">
+            <div className="card">
+              <h2>Visit List</h2>
 
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Customer, brand, salesperson ara"
-                  style={{ ...inputStyle(), width: 320 }}
-                />
-              </div>
-
-              <div style={{ overflowX: "auto" }}>
-                <table
-                  style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}
-                >
+              <div className="table-wrap">
+                <table className="table">
                   <thead>
-                    <tr style={{ background: "#f8fafc", textAlign: "left" }}>
-                      <Th>Visit ID</Th>
-                      <Th>Date</Th>
-                      <Th>Customer</Th>
-                      <Th>Salesperson</Th>
-                      <Th>Result</Th>
+                    <tr>
+                      <th>Visit ID</th>
+                      <th>Customer</th>
+                      <th>Result</th>
+                      <th>AI Score</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredLogs.map((item) => {
-                      const b = badgeStyle(item.result);
-
-                      return (
-                        <tr
-                          key={item.id}
-                          onClick={() => setSelectedLog(item)}
-                          style={{
-                            cursor: "pointer",
-                            borderTop: "1px solid #e5e7eb",
-                          }}
-                        >
-                          <Td strong>{item.id}</Td>
-                          <Td>{item.date || "-"}</Td>
-                          <Td>{item.customer}</Td>
-                          <Td>{item.salesperson}</Td>
-                          <Td>
-                            <span
-                              style={{
-                                background: b.bg,
-                                color: b.color,
-                                padding: "6px 10px",
-                                borderRadius: 999,
-                                fontSize: 12,
-                                fontWeight: 700,
-                                display: "inline-block",
-                              }}
-                            >
-                              {item.result}
-                            </span>
-                          </Td>
-                        </tr>
-                      );
-                    })}
+                    {logs.map((item) => (
+                      <tr
+                        key={item.id}
+                        onClick={() => setSelectedLog(item)}
+                        className="clickable-row"
+                      >
+                        <td className="strong">{item.id}</td>
+                        <td>{item.customer}</td>
+                        <td>{item.result}</td>
+                        <td>{aiAnalyze(item).score}/100</td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
             </div>
 
-            <div style={cardStyle()}>
-              <h3 style={{ marginTop: 0 }}>Selected Visit Detail</h3>
-
-              {selectedLog ? (
-                <div style={{ display: "grid", gap: 10 }}>
-                  <Detail label="Visit ID" value={selectedLog.id} />
-                  <Detail label="Customer" value={selectedLog.customer} />
-                  <Detail label="Brand" value={selectedLog.brand || "-"} />
-                  <Detail label="Purpose" value={selectedLog.purpose || "-"} />
-                  <Detail label="Result" value={selectedLog.result || "-"} />
-                  <Detail label="Follow-up" value={selectedLog.followUp || "-"} />
-                  <Detail
-                    label="Responsible KAM"
-                    value={selectedLog.responsibleKAM || "-"}
-                  />
-                  <Detail
-                    label="Yearly Opportunity"
-                    value={
-                      selectedLog.yearlyOpportunity
-                        ? `${selectedLog.yearlyOpportunity} HKD`
-                        : "-"
-                    }
-                  />
-
-                  <div
-                    style={{
-                      background: "#fff",
-                      border: "1px solid #e5e7eb",
-                      borderRadius: 14,
-                      padding: 14,
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: 12,
-                        textTransform: "uppercase",
-                        letterSpacing: 0.5,
-                        color: "#6b7280",
-                        marginBottom: 8,
-                      }}
-                    >
-                      Notes
-                    </div>
-                    <div style={{ fontSize: 14, lineHeight: 1.5 }}>
-                      {selectedLog.notes || "-"}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div>Kayıt seçilmedi.</div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {activeTab === "actions" && (
-          <div style={cardStyle()}>
-            <h2 style={{ marginTop: 0 }}>Action Tracker</h2>
-            <div style={{ color: "#6b7280", marginBottom: 14, fontSize: 14 }}>
-              Kritik visit sonuçlarından türeyen aksiyonlar
-            </div>
-
-            <div style={{ overflowX: "auto" }}>
-              <table
-                style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}
-              >
-                <thead>
-                  <tr style={{ background: "#f8fafc", textAlign: "left" }}>
-                    <Th>Visit ID</Th>
-                    <Th>Customer</Th>
-                    <Th>Action</Th>
-                    <Th>Owner</Th>
-                    <Th>Due Date</Th>
-                    <Th>Priority</Th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {actionItems.map((item) => (
-                    <tr
-                      key={`${item.id}-${item.action}`}
-                      style={{ borderTop: "1px solid #e5e7eb" }}
-                    >
-                      <Td strong>{item.id}</Td>
-                      <Td>{item.customer}</Td>
-                      <Td>{item.action}</Td>
-                      <Td>{item.owner}</Td>
-                      <Td>{item.due}</Td>
-                      <Td>
-                        <span
-                          style={{
-                            background:
-                              item.priority === "High" ? "#fee2e2" : "#fef3c7",
-                            color:
-                              item.priority === "High" ? "#b91c1c" : "#b45309",
-                            padding: "6px 10px",
-                            borderRadius: 999,
-                            fontSize: 12,
-                            fontWeight: 700,
-                            display: "inline-block",
-                          }}
-                        >
-                          {item.priority}
-                        </span>
-                      </Td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <AIInsightPanel title="Selected Visit AI Review" data={selectedAI} />
           </div>
         )}
 
         {activeTab === "mail" && (
-          <div
-            className="two-col-grid"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "0.8fr 1.2fr",
-              gap: 20,
-              alignItems: "start",
-            }}
-          >
-            <div style={cardStyle()}>
-              <h2 style={{ marginTop: 0 }}>Mail Output Source</h2>
-              <div style={{ color: "#6b7280", marginBottom: 14, fontSize: 14 }}>
-                Bir kayıt seç ve otomatik mail özetini gör
-              </div>
-
-              <div style={{ display: "grid", gap: 10 }}>
+          <div className="mail-grid">
+            <div className="card">
+              <h2>Select Visit</h2>
+              <div className="select-list">
                 {logs.map((item) => (
                   <button
                     key={item.id}
                     onClick={() => setSelectedLog(item)}
-                    style={{
-                      textAlign: "left",
-                      padding: 14,
-                      borderRadius: 14,
-                      border:
-                        selectedLog?.id === item.id
-                          ? "1px solid #111827"
-                          : "1px solid #e5e7eb",
-                      background: selectedLog?.id === item.id ? "#111827" : "#fff",
-                      color: selectedLog?.id === item.id ? "#fff" : "#111827",
-                      cursor: "pointer",
-                    }}
+                    className={`select-btn ${
+                      selectedLog?.id === item.id ? "selected" : ""
+                    }`}
                   >
-                    <div style={{ fontWeight: 700 }}>
+                    <span>
                       {item.id} - {item.customer}
-                    </div>
-                    <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>
-                      {item.date}
-                    </div>
+                    </span>
+                    <span className="tiny">{aiAnalyze(item).priority}</span>
                   </button>
                 ))}
               </div>
             </div>
 
-            <div style={cardStyle()}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: 12,
-                  flexWrap: "wrap",
-                  marginBottom: 14,
-                }}
-              >
-                <h2 style={{ margin: 0 }}>Automatic Mail Summary</h2>
-                <button style={secondaryButton} onClick={copyMailOutput}>
+            <div className="card">
+              <div className="panel-head">
+                <h2>AI Suggested Internal Mail</h2>
+                <button
+                  onClick={() => copyText(selectedAI.suggestedMail)}
+                  className="btn btn-secondary"
+                >
                   Copy
                 </button>
               </div>
 
               <textarea
                 readOnly
-                value={mailOutput}
-                style={{
-                  ...inputStyle(),
-                  minHeight: 520,
-                  background: "#f8fafc",
-                  whiteSpace: "pre-wrap",
-                }}
+                value={selectedAI.suggestedMail}
+                className="input mail-area"
               />
             </div>
           </div>
         )}
       </div>
 
-      <style jsx global>{`
+      <style jsx>{`
+        .page-shell {
+          min-height: 100vh;
+          background: #f8fafc;
+          padding: 24px;
+          color: #0f172a;
+          font-family: Arial, sans-serif;
+        }
+
+        .container {
+          max-width: 1280px;
+          margin: 0 auto;
+        }
+
+        .header-card,
+        .card,
+        .tabs-card,
+        .kpi-card {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 24px;
+          box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+        }
+
+        .header-card {
+          padding: 24px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 16px;
+          flex-wrap: wrap;
+          margin-bottom: 20px;
+        }
+
+        .eyebrow {
+          font-size: 14px;
+          color: #64748b;
+          margin-bottom: 8px;
+        }
+
+        h1 {
+          margin: 0;
+          font-size: 32px;
+        }
+
+        h2,
+        h3 {
+          margin: 0;
+        }
+
+        .header-actions,
+        .tabs-row {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+
+        .btn {
+          border-radius: 16px;
+          padding: 10px 16px;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        .btn-primary {
+          background: #0f172a;
+          color: white;
+          border: none;
+        }
+
+        .btn-secondary {
+          background: white;
+          color: #0f172a;
+          border: 1px solid #cbd5e1;
+        }
+
+        .kpi-grid {
+          display: grid;
+          grid-template-columns: repeat(5, minmax(0, 1fr));
+          gap: 16px;
+          margin-bottom: 20px;
+        }
+
+        .kpi-card {
+          padding: 20px;
+        }
+
+        .kpi-label {
+          font-size: 14px;
+          color: #64748b;
+        }
+
+        .kpi-value {
+          margin-top: 10px;
+          font-size: 34px;
+          font-weight: 800;
+        }
+
+        .tabs-card {
+          padding: 12px;
+          margin-bottom: 20px;
+        }
+
+        .tab-btn {
+          border: none;
+          border-radius: 16px;
+          padding: 10px 16px;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+          background: #f1f5f9;
+          color: #334155;
+        }
+
+        .tab-btn.active {
+          background: #0f172a;
+          color: #ffffff;
+        }
+
+        .message-box {
+          margin-bottom: 20px;
+          border-radius: 16px;
+          padding: 14px 16px;
+          background: #ecfdf5;
+          border: 1px solid #a7f3d0;
+          color: #065f46;
+          font-size: 14px;
+        }
+
+        .main-grid {
+          display: grid;
+          grid-template-columns: 1.2fr 0.8fr;
+          gap: 20px;
+          align-items: start;
+        }
+
+        .two-col-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 20px;
+          align-items: start;
+        }
+
+        .mail-grid {
+          display: grid;
+          grid-template-columns: 0.85fr 1.15fr;
+          gap: 20px;
+          align-items: start;
+        }
+
+        .card {
+          padding: 24px;
+        }
+
+        .subtext {
+          margin-top: 8px;
+          margin-bottom: 0;
+          color: #64748b;
+          font-size: 14px;
+        }
+
+        .form-grid {
+          margin-top: 20px;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+        }
+
+        .field-label {
+          display: block;
+          margin-bottom: 8px;
+          font-size: 14px;
+          font-weight: 600;
+          color: #334155;
+        }
+
+        .notes-wrap {
+          margin-top: 16px;
+        }
+
+        .input {
+          width: 100%;
+          box-sizing: border-box;
+          padding: 12px 14px;
+          border-radius: 16px;
+          border: 1px solid #cbd5e1;
+          background: white;
+          font-size: 14px;
+          outline: none;
+        }
+
+        .notes {
+          min-height: 180px;
+          resize: vertical;
+        }
+
+        .mail-area {
+          min-height: 420px;
+          background: #f8fafc;
+        }
+
+        .info-stack,
+        .stack,
+        .select-list {
+          display: grid;
+          gap: 12px;
+        }
+
+        .info-card {
+          border-radius: 18px;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          padding: 16px;
+        }
+
+        .info-title {
+          font-size: 12px;
+          color: #64748b;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          margin-bottom: 10px;
+        }
+
+        .info-content {
+          font-size: 14px;
+          line-height: 1.6;
+          color: #1e293b;
+        }
+
+        .info-list {
+          display: grid;
+          gap: 10px;
+        }
+
+        .info-item {
+          display: flex;
+          gap: 10px;
+          align-items: flex-start;
+          font-size: 14px;
+          color: #1e293b;
+          line-height: 1.5;
+        }
+
+        .dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 999px;
+          background: #0f172a;
+          margin-top: 7px;
+          flex-shrink: 0;
+        }
+
+        .panel-head {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+          flex-wrap: wrap;
+          margin-bottom: 16px;
+        }
+
+        .priority-badge {
+          border-radius: 999px;
+          padding: 10px 14px;
+          font-size: 14px;
+          font-weight: 700;
+        }
+
+        .priority-badge.high {
+          background: #fee2e2;
+          color: #b91c1c;
+        }
+
+        .priority-badge.medium {
+          background: #fef3c7;
+          color: #b45309;
+        }
+
+        .priority-badge.normal {
+          background: #dcfce7;
+          color: #15803d;
+        }
+
+        .score-box {
+          border-radius: 24px;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          padding: 20px;
+          margin-bottom: 16px;
+        }
+
+        .score-label {
+          font-size: 14px;
+          color: #64748b;
+        }
+
+        .score-value {
+          margin-top: 10px;
+          font-size: 54px;
+          font-weight: 800;
+        }
+
+        .score-value span {
+          font-size: 22px;
+          color: #94a3b8;
+          margin-left: 4px;
+        }
+
+        .table-wrap {
+          margin-top: 16px;
+          overflow-x: auto;
+          border-radius: 24px;
+          border: 1px solid #e2e8f0;
+        }
+
+        .table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 14px;
+          background: white;
+        }
+
+        .table th {
+          text-align: left;
+          padding: 14px 16px;
+          background: #f8fafc;
+          color: #64748b;
+          font-weight: 700;
+        }
+
+        .table td {
+          padding: 14px 16px;
+          border-top: 1px solid #eef2f7;
+        }
+
+        .clickable-row {
+          cursor: pointer;
+        }
+
+        .clickable-row:hover {
+          background: #f8fafc;
+        }
+
+        .strong {
+          font-weight: 700;
+        }
+
+        .select-btn {
+          width: 100%;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+          text-align: left;
+          border-radius: 16px;
+          border: 1px solid #e2e8f0;
+          background: white;
+          color: #0f172a;
+          padding: 14px 16px;
+          cursor: pointer;
+        }
+
+        .select-btn.selected {
+          background: #0f172a;
+          color: white;
+          border-color: #0f172a;
+        }
+
+        .tiny {
+          font-size: 12px;
+          opacity: 0.8;
+        }
+
         @media (max-width: 1100px) {
           .kpi-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
           }
-        }
 
-        @media (max-width: 900px) {
           .main-grid,
-          .two-col-grid {
-            grid-template-columns: 1fr !important;
-          }
-
-          .form-grid {
-            grid-template-columns: 1fr !important;
+          .two-col-grid,
+          .mail-grid {
+            grid-template-columns: 1fr;
           }
         }
 
-        @media (max-width: 640px) {
-          .kpi-grid {
-            grid-template-columns: 1fr !important;
+        @media (max-width: 700px) {
+          .page-shell {
+            padding: 14px;
+          }
+
+          .kpi-grid,
+          .form-grid {
+            grid-template-columns: 1fr;
+          }
+
+          h1 {
+            font-size: 26px;
+          }
+
+          .score-value {
+            font-size: 42px;
           }
         }
       `}</style>
-    </main>
+    </div>
   );
 }
 
 function Field({ label, children }) {
   return (
     <div>
-      <label style={labelStyle()}>{label}</label>
+      <label className="field-label">{label}</label>
       {children}
     </div>
   );
 }
 
-function KpiCard({ label, value }) {
+function InfoCard({ title, content }) {
   return (
-    <div style={cardStyle()}>
-      <div style={{ fontSize: 13, color: "#6b7280" }}>{label}</div>
-      <div style={{ fontSize: 30, fontWeight: 800, marginTop: 8 }}>{value}</div>
+    <div className="info-card">
+      <div className="info-title">{title}</div>
+      <div className="info-content">{content}</div>
     </div>
   );
 }
 
-function Checklist({ text }) {
+function InfoList({ title, items }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        gap: 10,
-        alignItems: "flex-start",
-        marginTop: 10,
-      }}
-    >
-      <div
-        style={{
-          width: 22,
-          height: 22,
-          borderRadius: 999,
-          background: "#111827",
-          color: "#fff",
-          fontSize: 12,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-          marginTop: 1,
-        }}
-      >
-        ✓
-      </div>
-      <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.45 }}>
-        {text}
+    <div className="info-card">
+      <div className="info-title">{title}</div>
+      <div className="info-list">
+        {items.map((item, idx) => (
+          <div key={idx} className="info-item">
+            <div className="dot" />
+            <div>{item}</div>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
 
-function MiniStat({ label, value }) {
+function AIInsightPanel({ title, data }) {
   return (
-    <div
-      style={{
-        background: "#f8fafc",
-        border: "1px solid #e5e7eb",
-        borderRadius: 14,
-        padding: 12,
-        marginTop: 10,
-      }}
-    >
-      <div style={{ fontSize: 12, color: "#6b7280" }}>{label}</div>
-      <div style={{ marginTop: 4, fontSize: 14, fontWeight: 700 }}>{value}</div>
-    </div>
-  );
-}
-
-function Detail({ label, value }) {
-  return (
-    <div
-      style={{
-        background: "#fff",
-        border: "1px solid #e5e7eb",
-        borderRadius: 14,
-        padding: 14,
-        display: "flex",
-        justifyContent: "space-between",
-        gap: 12,
-      }}
-    >
-      <div
-        style={{
-          fontSize: 12,
-          textTransform: "uppercase",
-          letterSpacing: 0.5,
-          color: "#6b7280",
-        }}
-      >
-        {label}
-      </div>
-      <div style={{ fontSize: 14, fontWeight: 700, textAlign: "right" }}>
-        {value}
+    <div className="card">
+      <h3>{title}</h3>
+      <div className="info-stack" style={{ marginTop: 20 }}>
+        <InfoList title="Why AI Thinks This Can Be Won" items={data.reasons} />
+        <InfoList title="Risk Flags" items={data.risks} />
+        <InfoList title="Recommended Actions" items={data.actions} />
       </div>
     </div>
-  );
-}
-
-function TabButton({ active, children, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        padding: "10px 14px",
-        borderRadius: 12,
-        border: "none",
-        background: active ? "#111827" : "#f3f4f6",
-        color: active ? "#fff" : "#374151",
-        fontWeight: 700,
-        cursor: "pointer",
-      }}
-    >
-      {children}
-    </button>
-  );
-}
-
-function Th({ children }) {
-  return (
-    <th
-      style={{
-        padding: 12,
-        fontSize: 13,
-        color: "#6b7280",
-        fontWeight: 700,
-      }}
-    >
-      {children}
-    </th>
-  );
-}
-
-function Td({ children, strong }) {
-  return (
-    <td
-      style={{
-        padding: 12,
-        fontSize: 14,
-        color: "#111827",
-        fontWeight: strong ? 700 : 400,
-        verticalAlign: "top",
-      }}
-    >
-      {children}
-    </td>
   );
 }
