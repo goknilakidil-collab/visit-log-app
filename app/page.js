@@ -1092,7 +1092,7 @@ Best regards`;
                     value={form.responsibleChooseKAM}
                     onChange={(e) => updateForm("responsibleChooseKAM", e.target.value)}
                     style={inputStyle()}
-                    placeholder="Choose KAM Choose"
+                    placeholder="ChooseKAMChoose"
                   />
                 </Field>
 
