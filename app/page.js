@@ -525,7 +525,14 @@ Best regards`;
             <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 6 }}>
               Sales App / Visit Management
             </div>
-            <h1 style={{ margin: 0, fontSize: 28 }}>Visit Log Module</h1>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+  <img
+    src="/logo.png"
+    alt="SML Logo"
+    style={{ height: 40 }}
+  />
+  <h1 style={{ margin: 0, fontSize: 28 }}>Visit Log Module</h1>
+</div>
           </div>
 
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
