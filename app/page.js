@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
+import * as XLSX from "xlsx";
 
 const visitResults = [
   "Follow-up visit planned",
@@ -344,6 +345,65 @@ const dashboardData = (logs) => {
   };
 };
 
+function normalizeExcelDate(value) {
+  if (!value) return "";
+  if (typeof value === "number") {
+    const date = XLSX.SSF.parse_date_code(value);
+    if (!date) return "";
+    const mm = String(date.m).padStart(2, "0");
+    const dd = String(date.d).padStart(2, "0");
+    return `${date.y}-${mm}-${dd}`;
+  }
+
+  const str = String(value).trim();
+  if (!str) return "";
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+
+  const slash = str.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$/);
+  if (slash) {
+    const dd = String(slash[1]).padStart(2, "0");
+    const mm = String(slash[2]).padStart(2, "0");
+    return `${slash[3]}-${mm}-${dd}`;
+  }
+
+  const parsed = new Date(str);
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed.toISOString().slice(0, 10);
+  }
+
+  return str;
+}
+
+function mapExcelRowToLog(row, fallbackIndex = 0) {
+  const visitCode = row.visit_code || row.visitCode || row.id || `IMP${Date.now()}${fallbackIndex}`;
+
+  return {
+    id: String(visitCode),
+    date: normalizeExcelDate(row.date),
+    salesperson: String(row.salesperson || ""),
+    customer: String(row.customer || ""),
+    brand: String(row.brand || ""),
+    segment: String(row.segment || ""),
+    allBrands: String(row.all_brands || row.allBrands || ""),
+    monthlyCapacity: String(row.monthly_capacity || row.monthlyCapacity || ""),
+    employeeCount: String(row.employee_count || row.employeeCount || ""),
+    inhouseProduction: String(row.inhouse_production || row.inhouseProduction || ""),
+    subcontractorQty: String(row.subcontractor_qty || row.subcontractorQty || ""),
+    subcontractorLocations: String(
+      row.subcontractor_locations || row.subcontractorLocations || ""
+    ),
+    purpose: String(row.purpose || ""),
+    monthlyOpportunity: String(row.monthly_opportunity || row.monthlyOpportunity || ""),
+    yearlyOpportunity: String(row.yearly_opportunity || row.yearlyOpportunity || ""),
+    notWorkingReason: String(row.not_working_reason || row.notWorkingReason || ""),
+    responsibleKAM: String(row.responsible_kam || row.responsibleKAM || ""),
+    result: String(row.result || ""),
+    followUp: normalizeExcelDate(row.follow_up || row.followUp),
+    notes: String(row.notes || ""),
+  };
+}
+
 export default function VisitLogModule() {
   const [activeTab, setActiveTab] = useState("entry");
   const [logs, setLogs] = useState(initialLogs);
@@ -360,6 +420,8 @@ export default function VisitLogModule() {
   const [dateTo, setDateTo] = useState("");
   const [salespersonFilter, setSalespersonFilter] = useState("");
   const [brandFilter, setBrandFilter] = useState("");
+
+  const fileInputRef = useRef(null);
 
   const salespersonOptions = useMemo(() => {
     return [...new Set(logs.map((x) => x.salesperson).filter(Boolean))].sort();
@@ -529,6 +591,53 @@ Best regards`;
     showMessage("AI mail önerisi kopyalandı.");
   }
 
+  function triggerExcelImport() {
+    fileInputRef.current?.click();
+  }
+
+  async function handleExcelImport(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const buffer = await file.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: "array" });
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+      const imported = rows
+        .map((row, index) => mapExcelRowToLog(row, index))
+        .filter((row) => row.customer || row.salesperson || row.notes);
+
+      if (!imported.length) {
+        showMessage("Excel içinde import edilecek satır bulunamadı.", "error");
+        event.target.value = "";
+        return;
+      }
+
+      const existingIds = new Set(logs.map((x) => x.id));
+      const uniqueImported = imported.map((item, index) => {
+        let nextId = item.id || `IMP${Date.now()}${index}`;
+        while (existingIds.has(nextId)) {
+          nextId = `${nextId}-1`;
+        }
+        existingIds.add(nextId);
+        return { ...item, id: nextId };
+      });
+
+      const nextLogs = [...uniqueImported, ...logs];
+      setLogs(nextLogs);
+      setSelectedLog(uniqueImported[0]);
+      showMessage(`${uniqueImported.length} kayıt Excel'den içe aktarıldı.`);
+      setActiveTab("list");
+    } catch (error) {
+      showMessage("Excel import sırasında hata oluştu.", "error");
+    } finally {
+      event.target.value = "";
+    }
+  }
+
   return (
     <main
       style={{
@@ -541,6 +650,14 @@ Best regards`;
       }}
     >
       <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".xlsx,.xls"
+          onChange={handleExcelImport}
+          style={{ display: "none" }}
+        />
+
         <div
           style={{
             ...cardStyle(),
@@ -639,7 +756,9 @@ Best regards`;
           </div>
 
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <button style={secondaryButton}>Excel Import</button>
+            <button style={secondaryButton} onClick={triggerExcelImport}>
+              Excel Import
+            </button>
             <button style={primaryButton} onClick={saveLog}>
               Save Visit Log
             </button>
@@ -655,7 +774,7 @@ Best regards`;
             marginBottom: 20,
           }}
         >
-          <KpiCard label="Total Visit" value={kpis.total} />
+          <KpiCard label="Toplam Visit" value={kpis.total} />
           <KpiCard label="Follow-up" value={kpis.followUps} />
           <KpiCard label="Order Expected" value={kpis.orderExpected} />
           <KpiCard label="Critical" value={kpis.critical} />
@@ -706,7 +825,7 @@ Best regards`;
           <div style={{ marginBottom: 14 }}>
             <h3 style={{ margin: 0 }}>Filters</h3>
             <div style={{ color: "#6b7280", fontSize: 13, marginTop: 6 }}>
-              Date, salesperson and brand filter
+              Tarih aralığı, salesperson ve brand bazında filtreleme
             </div>
           </div>
 
@@ -805,9 +924,9 @@ Best regards`;
             }}
           >
             <div style={cardStyle()}>
-              <h2 style={{ marginTop: 0 }}>New Visit Log</h2>
+              <h2 style={{ marginTop: 0 }}>Yeni Visit Log Girişi</h2>
               <p style={{ color: "#6b7280", marginTop: -6, marginBottom: 18 }}>
-                Standard Post-Visit Data Entry / CRM Logging / Action Plan Creator.
+                Ziyaret sonrası standart veri girişi, fırsat takibi ve aksiyon üretimi.
               </p>
 
               <div
@@ -818,7 +937,7 @@ Best regards`;
                   gap: 14,
                 }}
               >
-                <Field label="Date of Visit">
+                <Field label="Ziyaret Tarihi">
                   <input
                     type="date"
                     value={form.date}
@@ -832,7 +951,7 @@ Best regards`;
                     value={form.salesperson}
                     onChange={(e) => updateForm("salesperson", e.target.value)}
                     style={inputStyle()}
-                    placeholder="Choose"
+                    placeholder="Seçiniz"
                   />
                 </Field>
 
@@ -868,7 +987,7 @@ Best regards`;
                     value={form.allBrands}
                     onChange={(e) => updateForm("allBrands", e.target.value)}
                     style={inputStyle()}
-                    placeholder="Other Brands"
+                    placeholder="Diğer markalar"
                   />
                 </Field>
 
@@ -877,7 +996,7 @@ Best regards`;
                     value={form.monthlyCapacity}
                     onChange={(e) => updateForm("monthlyCapacity", e.target.value)}
                     style={inputStyle()}
-                    placeholder="Monthly Garment QTY"
+                    placeholder="Aylık adet"
                   />
                 </Field>
 
@@ -886,7 +1005,7 @@ Best regards`;
                     value={form.employeeCount}
                     onChange={(e) => updateForm("employeeCount", e.target.value)}
                     style={inputStyle()}
-                    placeholder="Number of Employees"
+                    placeholder="Kaç kişi çalışıyor"
                   />
                 </Field>
 
@@ -896,7 +1015,7 @@ Best regards`;
                     onChange={(e) => updateForm("inhouseProduction", e.target.value)}
                     style={inputStyle()}
                   >
-                    <option value="">Choose</option>
+                    <option value="">Seçiniz</option>
                     <option>Yes</option>
                     <option>No</option>
                   </select>
@@ -907,7 +1026,7 @@ Best regards`;
                     value={form.subcontractorQty}
                     onChange={(e) => updateForm("subcontractorQty", e.target.value)}
                     style={inputStyle()}
-                    placeholder="QTY"
+                    placeholder="Adet"
                   />
                 </Field>
 
@@ -918,7 +1037,7 @@ Best regards`;
                       updateForm("subcontractorLocations", e.target.value)
                     }
                     style={inputStyle()}
-                    placeholder="City Information"
+                    placeholder="Lokasyon bilgisi"
                   />
                 </Field>
 
@@ -928,7 +1047,7 @@ Best regards`;
                     onChange={(e) => updateForm("purpose", e.target.value)}
                     style={inputStyle()}
                   >
-                    <option value="">Choose</option>
+                    <option value="">Seçiniz</option>
                     {purposes.map((item) => (
                       <option key={item} value={item}>
                         {item}
@@ -964,7 +1083,7 @@ Best regards`;
                     value={form.notWorkingReason}
                     onChange={(e) => updateForm("notWorkingReason", e.target.value)}
                     style={inputStyle()}
-                    placeholder="Reason"
+                    placeholder="Sebep"
                   />
                 </Field>
 
@@ -973,7 +1092,7 @@ Best regards`;
                     value={form.responsibleKAM}
                     onChange={(e) => updateForm("responsibleKAM", e.target.value)}
                     style={inputStyle()}
-                    placeholder="Choose KAM"
+                    placeholder="KAM seçiniz"
                   />
                 </Field>
 
@@ -983,7 +1102,7 @@ Best regards`;
                     onChange={(e) => updateForm("result", e.target.value)}
                     style={inputStyle()}
                   >
-                    <option value="">Choose</option>
+                    <option value="">Seçiniz</option>
                     {visitResults.map((item) => (
                       <option key={item} value={item}>
                         {item}
@@ -1008,30 +1127,30 @@ Best regards`;
                   value={form.notes}
                   onChange={(e) => updateForm("notes", e.target.value)}
                   style={{ ...inputStyle(), minHeight: 140, resize: "vertical" }}
-                  placeholder="Visit Notes, Order Potential, Risks, Action Plan..."
+                  placeholder="Ziyaret notu, sipariş potansiyeli, riskler, aksiyonlar..."
                 />
               </div>
             </div>
 
             <div style={{ display: "grid", gap: 20 }}>
               <div style={cardStyle()}>
-                <h3 style={{ marginTop: 0 }}>Rules</h3>
-                <Checklist text="Customer, Salesperson, Purpose and Result Must" />
-                <Checklist text="Follow Up Date is a Must" />
-                <Checklist text="Yearly Amount calculating automativally" />
-                <Checklist text="Critical actions will be in action tracker" />
-                <Checklist text="Mail Output tab will show auto e-mail drafts" />
+                <h3 style={{ marginTop: 0 }}>İş Kuralları</h3>
+                <Checklist text="Customer, Salesperson, Purpose ve Result zorunlu" />
+                <Checklist text="Kritik sonuçlarda follow-up tarihi zorunlu" />
+                <Checklist text="Monthly girilirse yearly otomatik hesaplanır" />
+                <Checklist text="Kritik kayıtlar action tracker'a düşer" />
+                <Checklist text="Mail Output sekmesinde otomatik özet oluşur" />
               </div>
 
               <div style={cardStyle()}>
-                <h3 style={{ marginTop: 0 }}>In This Module</h3>
-                <MiniStat label="Visit Logs" value="Activated" />
-                <MiniStat label="Listings" value="Activated" />
+                <h3 style={{ marginTop: 0 }}>Bu Modülde Var</h3>
+                <MiniStat label="Form girişi" value="Aktif" />
+                <MiniStat label="Listeleme" value="Aktif" />
                 <MiniStat
                   label="Action Tracker"
-                  value={`${actionItems.length} logs`}
+                  value={`${actionItems.length} kayıt`}
                 />
-                <MiniStat label="Mail summary" value="Activated" />
+                <MiniStat label="Mail summary" value="Aktif" />
               </div>
             </div>
           </div>
@@ -1185,7 +1304,7 @@ Best regards`;
           <div style={cardStyle()}>
             <h2 style={{ marginTop: 0 }}>Action Tracker</h2>
             <div style={{ color: "#6b7280", marginBottom: 14, fontSize: 14 }}>
-              Critical Visits Action Plans
+              Kritik visit sonuçlarından türeyen aksiyonlar
             </div>
 
             <div style={{ overflowX: "auto" }}>
@@ -1251,7 +1370,7 @@ Best regards`;
             <div style={cardStyle()}>
               <h2 style={{ marginTop: 0 }}>Mail Output Source</h2>
               <div style={{ color: "#6b7280", marginBottom: 14, fontSize: 14 }}>
-                Choose a Log and see Auto E-mail Summary
+                Bir kayıt seç ve otomatik mail özetini gör
               </div>
 
               <div style={{ display: "grid", gap: 10 }}>
@@ -1329,7 +1448,7 @@ Best regards`;
               <div>
                 <h2 style={{ margin: 0 }}>AI Insights</h2>
                 <div style={{ color: "#6b7280", fontSize: 14, marginTop: 6 }}>
-                  Recommendations, risks, and next action analysis for the selected visit record
+                  Seçili visit kaydı için öneri, risk ve sonraki aksiyon analizi
                 </div>
               </div>
               <button style={secondaryButton} onClick={copyAIOutput}>
