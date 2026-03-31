@@ -142,6 +142,7 @@ function inputStyle() {
     fontSize: 14,
     boxSizing: "border-box",
     outline: "none",
+    background: "#fff",
   };
 }
 
@@ -355,36 +356,58 @@ export default function VisitLogModule() {
     date: new Date().toISOString().slice(0, 10),
   });
 
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [salespersonFilter, setSalespersonFilter] = useState("");
+  const [brandFilter, setBrandFilter] = useState("");
+
+  const salespersonOptions = useMemo(() => {
+    return [...new Set(logs.map((x) => x.salesperson).filter(Boolean))].sort();
+  }, [logs]);
+
+  const brandOptions = useMemo(() => {
+    return [...new Set(logs.map((x) => x.brand).filter(Boolean))].sort();
+  }, [logs]);
+
   const filteredLogs = useMemo(() => {
     const q = search.toLowerCase().trim();
-    if (!q) return logs;
 
-    return logs.filter((item) =>
-      [
-        item.id,
-        item.customer,
-        item.salesperson,
-        item.brand,
-        item.result,
-        item.responsibleKAM,
-      ]
-        .join(" ")
-        .toLowerCase()
-        .includes(q)
-    );
-  }, [logs, search]);
+    return logs.filter((item) => {
+      const matchesSearch =
+        !q ||
+        [
+          item.id,
+          item.customer,
+          item.salesperson,
+          item.brand,
+          item.result,
+          item.responsibleKAM,
+        ]
+          .join(" ")
+          .toLowerCase()
+          .includes(q);
+
+      const matchesFrom = !dateFrom || (item.date && item.date >= dateFrom);
+      const matchesTo = !dateTo || (item.date && item.date <= dateTo);
+      const matchesSalesperson =
+        !salespersonFilter || item.salesperson === salespersonFilter;
+      const matchesBrand = !brandFilter || item.brand === brandFilter;
+
+      return matchesSearch && matchesFrom && matchesTo && matchesSalesperson && matchesBrand;
+    });
+  }, [logs, search, dateFrom, dateTo, salespersonFilter, brandFilter]);
 
   const kpis = useMemo(() => {
     return {
-      total: logs.length,
-      followUps: logs.filter((x) => x.followUp).length,
-      orderExpected: logs.filter((x) => x.result === "Order expected").length,
-      critical: logs.filter((x) => criticalResults.includes(x.result)).length,
+      total: filteredLogs.length,
+      followUps: filteredLogs.filter((x) => x.followUp).length,
+      orderExpected: filteredLogs.filter((x) => x.result === "Order expected").length,
+      critical: filteredLogs.filter((x) => criticalResults.includes(x.result)).length,
     };
-  }, [logs]);
+  }, [filteredLogs]);
 
   const actionItems = useMemo(() => {
-    return logs
+    return filteredLogs
       .filter((x) => criticalResults.includes(x.result))
       .map((x) => ({
         id: x.id,
@@ -397,12 +420,12 @@ export default function VisitLogModule() {
           x.result === "Revised offer to be shared"
             ? "Share revised quotation"
             : x.result === "Order expected"
-              ? "Secure PO and shipment timing"
-              : x.result === "Management-level follow-up required"
-                ? "Escalate to management"
-                : "Close follow-up with customer",
+            ? "Secure PO and shipment timing"
+            : x.result === "Management-level follow-up required"
+            ? "Escalate to management"
+            : "Close follow-up with customer",
       }));
-  }, [logs]);
+  }, [filteredLogs]);
 
   const mailOutput = useMemo(() => {
     if (!selectedLog) return "";
@@ -432,7 +455,7 @@ Best regards`;
   }, [selectedLog]);
 
   const aiOutput = useMemo(() => aiAnalyze(selectedLog), [selectedLog]);
-  const dashboard = useMemo(() => dashboardData(logs), [logs]);
+  const dashboard = useMemo(() => dashboardData(filteredLogs), [filteredLogs]);
 
   function showMessage(text, type = "success") {
     setMessage(text);
@@ -457,6 +480,14 @@ Best regards`;
       ...emptyForm,
       date: new Date().toISOString().slice(0, 10),
     });
+  }
+
+  function resetFilters() {
+    setDateFrom("");
+    setDateTo("");
+    setSalespersonFilter("");
+    setBrandFilter("");
+    setSearch("");
   }
 
   function saveLog() {
@@ -514,6 +545,85 @@ Best regards`;
           style={{
             ...cardStyle(),
             marginBottom: 20,
+            padding: 14,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 16,
+            flexWrap: "wrap",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div
+              style={{
+                background: "#fff",
+                padding: 8,
+                borderRadius: 12,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <img
+                src="/logo.JPG"
+                alt="SML Logo"
+                style={{ height: 42, width: "auto", display: "block" }}
+              />
+            </div>
+
+            <div>
+              <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 4 }}>
+                SML Turkey
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 800 }}>
+                Visit Log Module
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <div
+              style={{
+                background: "#f8fafc",
+                border: "1px solid #e5e7eb",
+                borderRadius: 14,
+                padding: "10px 14px",
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+              }}
+            >
+              <div
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: "999px",
+                  background: "#111827",
+                  color: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontWeight: 700,
+                  fontSize: 13,
+                }}
+              >
+                GA
+              </div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700 }}>Göknil Akidil</div>
+                <div style={{ fontSize: 11, color: "#6b7280" }}>Sales & Marketing</div>
+              </div>
+            </div>
+
+            <button style={secondaryButton}>Profile</button>
+            <button style={secondaryButton}>Logout</button>
+          </div>
+        </div>
+
+        <div
+          style={{
+            ...cardStyle(),
+            marginBottom: 20,
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
@@ -525,14 +635,7 @@ Best regards`;
             <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 6 }}>
               Sales App / Visit Management
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-  <img
-    src="/logo.png"
-    alt="SML Logo"
-    style={{ height: 40 }}
-  />
-  <h1 style={{ margin: 0, fontSize: 28 }}>Visit Log Module</h1>
-</div>
+            <h1 style={{ margin: 0, fontSize: 28 }}>Control Panel</h1>
           </div>
 
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -596,6 +699,79 @@ Best regards`;
             >
               Dashboard
             </TabButton>
+          </div>
+        </div>
+
+        <div style={{ ...cardStyle(), marginBottom: 20 }}>
+          <div style={{ marginBottom: 14 }}>
+            <h3 style={{ margin: 0 }}>Filters</h3>
+            <div style={{ color: "#6b7280", fontSize: 13, marginTop: 6 }}>
+              Tarih aralığı, salesperson ve brand bazında filtreleme
+            </div>
+          </div>
+
+          <div
+            className="filter-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr",
+              gap: 14,
+              alignItems: "end",
+            }}
+          >
+            <Field label="Date From">
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                style={inputStyle()}
+              />
+            </Field>
+
+            <Field label="Date To">
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                style={inputStyle()}
+              />
+            </Field>
+
+            <Field label="Salesperson">
+              <select
+                value={salespersonFilter}
+                onChange={(e) => setSalespersonFilter(e.target.value)}
+                style={inputStyle()}
+              >
+                <option value="">All</option>
+                {salespersonOptions.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Brand">
+              <select
+                value={brandFilter}
+                onChange={(e) => setBrandFilter(e.target.value)}
+                style={inputStyle()}
+              >
+                <option value="">All</option>
+                {brandOptions.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <div style={{ display: "flex", gap: 10 }}>
+              <button style={secondaryButton} onClick={resetFilters}>
+                Reset
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1079,7 +1255,7 @@ Best regards`;
               </div>
 
               <div style={{ display: "grid", gap: 10 }}>
-                {logs.map((item) => (
+                {filteredLogs.map((item) => (
                   <button
                     key={item.id}
                     onClick={() => setSelectedLog(item)}
@@ -1192,8 +1368,8 @@ Best regards`;
                         aiOutput.priority === "High"
                           ? "#b91c1c"
                           : aiOutput.priority === "Medium"
-                            ? "#b45309"
-                            : "#15803d",
+                          ? "#b45309"
+                          : "#15803d",
                     }}
                   >
                     {aiOutput.priority}
@@ -1276,15 +1452,12 @@ Best regards`;
                 gap: 16,
               }}
             >
-              <KpiCard label="Total Visits" value={logs.length} />
+              <KpiCard label="Total Visits" value={filteredLogs.length} />
               <KpiCard
                 label="Critical Visits"
-                value={logs.filter((x) => criticalResults.includes(x.result)).length}
+                value={filteredLogs.filter((x) => criticalResults.includes(x.result)).length}
               />
-              <KpiCard
-                label="AI High Priority"
-                value={dashboard.highAI}
-              />
+              <KpiCard label="AI High Priority" value={dashboard.highAI} />
               <KpiCard
                 label="Total Opportunity"
                 value={`${Number(dashboard.totalOpportunity).toLocaleString()} HKD`}
@@ -1508,6 +1681,12 @@ Best regards`;
       </div>
 
       <style jsx global>{`
+        @media (max-width: 1180px) {
+          .filter-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+        }
+
         @media (max-width: 1100px) {
           .kpi-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -1521,6 +1700,10 @@ Best regards`;
           }
 
           .form-grid {
+            grid-template-columns: 1fr !important;
+          }
+
+          .filter-grid {
             grid-template-columns: 1fr !important;
           }
         }
