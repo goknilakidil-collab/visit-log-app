@@ -655,7 +655,7 @@ Best regards`;
             marginBottom: 20,
           }}
         >
-          <KpiCard label="Toplam Visit" value={kpis.total} />
+          <KpiCard label="Total Visit" value={kpis.total} />
           <KpiCard label="Follow-up" value={kpis.followUps} />
           <KpiCard label="Order Expected" value={kpis.orderExpected} />
           <KpiCard label="Critical" value={kpis.critical} />
@@ -706,7 +706,7 @@ Best regards`;
           <div style={{ marginBottom: 14 }}>
             <h3 style={{ margin: 0 }}>Filters</h3>
             <div style={{ color: "#6b7280", fontSize: 13, marginTop: 6 }}>
-              Tarih aralığı, salesperson ve brand bazında filtreleme
+              Date, salesperson and brand filter
             </div>
           </div>
 
@@ -805,9 +805,9 @@ Best regards`;
             }}
           >
             <div style={cardStyle()}>
-              <h2 style={{ marginTop: 0 }}>Yeni Visit Log Girişi</h2>
+              <h2 style={{ marginTop: 0 }}>New Visit Log</h2>
               <p style={{ color: "#6b7280", marginTop: -6, marginBottom: 18 }}>
-                Ziyaret sonrası standart veri girişi, fırsat takibi ve aksiyon üretimi.
+                Standard Post-Visit Data Entry / CRM Logging / Action Plan Creator.
               </p>
 
               <div
@@ -818,7 +818,7 @@ Best regards`;
                   gap: 14,
                 }}
               >
-                <Field label="Ziyaret Tarihi">
+                <Field label="Date of Visit">
                   <input
                     type="date"
                     value={form.date}
@@ -832,7 +832,7 @@ Best regards`;
                     value={form.salesperson}
                     onChange={(e) => updateForm("salesperson", e.target.value)}
                     style={inputStyle()}
-                    placeholder="Seçiniz"
+                    placeholder="Choose"
                   />
                 </Field>
 
@@ -868,7 +868,7 @@ Best regards`;
                     value={form.allBrands}
                     onChange={(e) => updateForm("allBrands", e.target.value)}
                     style={inputStyle()}
-                    placeholder="Diğer markalar"
+                    placeholder="Other Brands"
                   />
                 </Field>
 
@@ -877,7 +877,7 @@ Best regards`;
                     value={form.monthlyCapacity}
                     onChange={(e) => updateForm("monthlyCapacity", e.target.value)}
                     style={inputStyle()}
-                    placeholder="Aylık adet"
+                    placeholder="Monthly Garment QTY"
                   />
                 </Field>
 
@@ -886,7 +886,7 @@ Best regards`;
                     value={form.employeeCount}
                     onChange={(e) => updateForm("employeeCount", e.target.value)}
                     style={inputStyle()}
-                    placeholder="Kaç kişi çalışıyor"
+                    placeholder="Number of Employees"
                   />
                 </Field>
 
@@ -896,7 +896,7 @@ Best regards`;
                     onChange={(e) => updateForm("inhouseProduction", e.target.value)}
                     style={inputStyle()}
                   >
-                    <option value="">Seçiniz</option>
+                    <option value="">Choose</option>
                     <option>Yes</option>
                     <option>No</option>
                   </select>
@@ -907,7 +907,7 @@ Best regards`;
                     value={form.subcontractorQty}
                     onChange={(e) => updateForm("subcontractorQty", e.target.value)}
                     style={inputStyle()}
-                    placeholder="Adet"
+                    placeholder="QTY"
                   />
                 </Field>
 
@@ -918,7 +918,7 @@ Best regards`;
                       updateForm("subcontractorLocations", e.target.value)
                     }
                     style={inputStyle()}
-                    placeholder="Lokasyon bilgisi"
+                    placeholder="City Information"
                   />
                 </Field>
 
@@ -928,7 +928,7 @@ Best regards`;
                     onChange={(e) => updateForm("purpose", e.target.value)}
                     style={inputStyle()}
                   >
-                    <option value="">Seçiniz</option>
+                    <option value="">Choose</option>
                     {purposes.map((item) => (
                       <option key={item} value={item}>
                         {item}
@@ -964,7 +964,7 @@ Best regards`;
                     value={form.notWorkingReason}
                     onChange={(e) => updateForm("notWorkingReason", e.target.value)}
                     style={inputStyle()}
-                    placeholder="Sebep"
+                    placeholder="Reason"
                   />
                 </Field>
 
@@ -973,7 +973,7 @@ Best regards`;
                     value={form.responsibleKAM}
                     onChange={(e) => updateForm("responsibleKAM", e.target.value)}
                     style={inputStyle()}
-                    placeholder="KAM seçiniz"
+                    placeholder="Choose KAM"
                   />
                 </Field>
 
@@ -983,7 +983,7 @@ Best regards`;
                     onChange={(e) => updateForm("result", e.target.value)}
                     style={inputStyle()}
                   >
-                    <option value="">Seçiniz</option>
+                    <option value="">Choose</option>
                     {visitResults.map((item) => (
                       <option key={item} value={item}>
                         {item}
@@ -1008,30 +1008,30 @@ Best regards`;
                   value={form.notes}
                   onChange={(e) => updateForm("notes", e.target.value)}
                   style={{ ...inputStyle(), minHeight: 140, resize: "vertical" }}
-                  placeholder="Ziyaret notu, sipariş potansiyeli, riskler, aksiyonlar..."
+                  placeholder="Visit Notes, Order Potential, Risks, Action Plan..."
                 />
               </div>
             </div>
 
             <div style={{ display: "grid", gap: 20 }}>
               <div style={cardStyle()}>
-                <h3 style={{ marginTop: 0 }}>İş Kuralları</h3>
-                <Checklist text="Customer, Salesperson, Purpose ve Result zorunlu" />
-                <Checklist text="Kritik sonuçlarda follow-up tarihi zorunlu" />
-                <Checklist text="Monthly girilirse yearly otomatik hesaplanır" />
-                <Checklist text="Kritik kayıtlar action tracker'a düşer" />
-                <Checklist text="Mail Output sekmesinde otomatik özet oluşur" />
+                <h3 style={{ marginTop: 0 }}>Rules</h3>
+                <Checklist text="Customer, Salesperson, Purpose and Result Must" />
+                <Checklist text="Follow Up Date is a Must" />
+                <Checklist text="Yearly Amount calculating automativally" />
+                <Checklist text="Critical actions will be in action tracker" />
+                <Checklist text="Mail Output tab will show auto e-mail drafts" />
               </div>
 
               <div style={cardStyle()}>
-                <h3 style={{ marginTop: 0 }}>Bu Modülde Var</h3>
-                <MiniStat label="Form girişi" value="Aktif" />
-                <MiniStat label="Listeleme" value="Aktif" />
+                <h3 style={{ marginTop: 0 }}>In This Module</h3>
+                <MiniStat label="Visit Logs" value="Activated" />
+                <MiniStat label="Listings" value="Activated" />
                 <MiniStat
                   label="Action Tracker"
-                  value={`${actionItems.length} kayıt`}
+                  value={`${actionItems.length} logs`}
                 />
-                <MiniStat label="Mail summary" value="Aktif" />
+                <MiniStat label="Mail summary" value="Activated" />
               </div>
             </div>
           </div>
@@ -1185,7 +1185,7 @@ Best regards`;
           <div style={cardStyle()}>
             <h2 style={{ marginTop: 0 }}>Action Tracker</h2>
             <div style={{ color: "#6b7280", marginBottom: 14, fontSize: 14 }}>
-              Kritik visit sonuçlarından türeyen aksiyonlar
+              Critical Visits Action Plans
             </div>
 
             <div style={{ overflowX: "auto" }}>
@@ -1251,7 +1251,7 @@ Best regards`;
             <div style={cardStyle()}>
               <h2 style={{ marginTop: 0 }}>Mail Output Source</h2>
               <div style={{ color: "#6b7280", marginBottom: 14, fontSize: 14 }}>
-                Bir kayıt seç ve otomatik mail özetini gör
+                Choose a Log and see Auto E-mail Summary
               </div>
 
               <div style={{ display: "grid", gap: 10 }}>
@@ -1329,7 +1329,7 @@ Best regards`;
               <div>
                 <h2 style={{ margin: 0 }}>AI Insights</h2>
                 <div style={{ color: "#6b7280", fontSize: 14, marginTop: 6 }}>
-                  Seçili visit kaydı için öneri, risk ve sonraki aksiyon analizi
+                  Recommendations, risks, and next action analysis for the selected visit record
                 </div>
               </div>
               <button style={secondaryButton} onClick={copyAIOutput}>
