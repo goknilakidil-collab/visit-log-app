@@ -289,6 +289,60 @@ Best regards`;
   };
 }
 
+const dashboardData = (logs) => {
+  const bySales = {};
+  const byResult = {};
+  const byBrand = {};
+  let highAI = 0;
+  let totalOpportunity = 0;
+
+  logs.forEach((log) => {
+    const sales = log.salesperson || "Unknown";
+    const result = log.result || "Unknown";
+    const brand = log.brand || "Unknown";
+    const yearly = Number(log.yearlyOpportunity || 0);
+
+    bySales[sales] = (bySales[sales] || 0) + 1;
+    byResult[result] = (byResult[result] || 0) + 1;
+    byBrand[brand] = (byBrand[brand] || 0) + yearly;
+
+    totalOpportunity += yearly;
+
+    if (aiAnalyze(log).priority === "High") {
+      highAI++;
+    }
+  });
+
+  const monthlyTrend = {};
+  logs.forEach((log) => {
+    const month = (log.date || "").slice(0, 7) || "Unknown";
+    monthlyTrend[month] = (monthlyTrend[month] || 0) + 1;
+  });
+
+  const upcomingFollowups = logs
+    .filter((x) => x.followUp)
+    .sort((a, b) => a.followUp.localeCompare(b.followUp))
+    .slice(0, 5);
+
+  const topCustomers = [...logs]
+    .sort(
+      (a, b) =>
+        Number(b.yearlyOpportunity || 0) - Number(a.yearlyOpportunity || 0)
+    )
+    .slice(0, 5);
+
+  return {
+    bySales,
+    byResult,
+    byBrand,
+    highAI,
+    totalOpportunity,
+    monthlyTrend,
+    upcomingFollowups,
+    topCustomers,
+  };
+};
+
 export default function VisitLogModule() {
   const [activeTab, setActiveTab] = useState("entry");
   const [logs, setLogs] = useState(initialLogs);
@@ -378,6 +432,7 @@ Best regards`;
   }, [selectedLog]);
 
   const aiOutput = useMemo(() => aiAnalyze(selectedLog), [selectedLog]);
+  const dashboard = useMemo(() => dashboardData(logs), [logs]);
 
   function showMessage(text, type = "success") {
     setMessage(text);
@@ -433,14 +488,12 @@ Best regards`;
 
   function copyMailOutput() {
     if (!mailOutput) return;
-
     navigator.clipboard.writeText(mailOutput);
     showMessage("Mail özeti kopyalandı.");
   }
 
   function copyAIOutput() {
     if (!aiOutput?.suggestedMail) return;
-
     navigator.clipboard.writeText(aiOutput.suggestedMail);
     showMessage("AI mail önerisi kopyalandı.");
   }
@@ -529,6 +582,12 @@ Best regards`;
               onClick={() => setActiveTab("ai")}
             >
               AI Insights
+            </TabButton>
+            <TabButton
+              active={activeTab === "dashboard"}
+              onClick={() => setActiveTab("dashboard")}
+            >
+              Dashboard
             </TabButton>
           </div>
         </div>
@@ -1195,6 +1254,246 @@ Best regards`;
                     }}
                   />
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "dashboard" && (
+          <div style={{ display: "grid", gap: 20 }}>
+            <div
+              className="kpi-grid"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+                gap: 16,
+              }}
+            >
+              <KpiCard label="Total Visits" value={logs.length} />
+              <KpiCard
+                label="Critical Visits"
+                value={logs.filter((x) => criticalResults.includes(x.result)).length}
+              />
+              <KpiCard
+                label="AI High Priority"
+                value={dashboard.highAI}
+              />
+              <KpiCard
+                label="Total Opportunity"
+                value={`${Number(dashboard.totalOpportunity).toLocaleString()} HKD`}
+              />
+            </div>
+
+            <div
+              className="two-col-grid"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 20,
+                alignItems: "start",
+              }}
+            >
+              <div style={cardStyle()}>
+                <h3 style={{ marginTop: 0, marginBottom: 16 }}>Visits by Salesperson</h3>
+                {Object.entries(dashboard.bySales).map(([name, val]) => {
+                  const maxVal = Math.max(...Object.values(dashboard.bySales));
+                  const width = maxVal ? (val / maxVal) * 100 : 0;
+
+                  return (
+                    <div key={name} style={{ marginBottom: 14 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          fontSize: 13,
+                          marginBottom: 6,
+                        }}
+                      >
+                        <span>{name}</span>
+                        <strong>{val}</strong>
+                      </div>
+                      <div
+                        style={{
+                          height: 10,
+                          background: "#e5e7eb",
+                          borderRadius: 999,
+                          overflow: "hidden",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: `${width}%`,
+                            background: "#111827",
+                            height: "100%",
+                            borderRadius: 999,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div style={cardStyle()}>
+                <h3 style={{ marginTop: 0, marginBottom: 16 }}>Monthly Visit Trend</h3>
+                <div style={{ display: "flex", alignItems: "flex-end", gap: 12, minHeight: 180, flexWrap: "wrap" }}>
+                  {Object.entries(dashboard.monthlyTrend).map(([month, val]) => {
+                    const maxVal = Math.max(...Object.values(dashboard.monthlyTrend));
+                    const height = maxVal ? (val / maxVal) * 120 : 0;
+
+                    return (
+                      <div
+                        key={month}
+                        style={{
+                          display: "inline-flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "end",
+                          width: 70,
+                          verticalAlign: "bottom",
+                        }}
+                      >
+                        <div style={{ fontSize: 12, marginBottom: 6 }}>{val}</div>
+                        <div
+                          style={{
+                            width: 36,
+                            height: `${height}px`,
+                            minHeight: 8,
+                            background: "#0f172a",
+                            borderRadius: "10px 10px 0 0",
+                          }}
+                        />
+                        <div style={{ fontSize: 12, marginTop: 8, color: "#6b7280" }}>
+                          {month}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            <div
+              className="two-col-grid"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 20,
+                alignItems: "start",
+              }}
+            >
+              <div style={cardStyle()}>
+                <h3 style={{ marginTop: 0, marginBottom: 16 }}>Result Distribution</h3>
+                {Object.entries(dashboard.byResult).map(([name, val]) => (
+                  <div
+                    key={name}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      padding: "10px 0",
+                      borderBottom: "1px solid #f1f5f9",
+                      fontSize: 14,
+                    }}
+                  >
+                    <span>{name}</span>
+                    <strong>{val}</strong>
+                  </div>
+                ))}
+              </div>
+
+              <div style={cardStyle()}>
+                <h3 style={{ marginTop: 0, marginBottom: 16 }}>Top 5 Customers by Opportunity</h3>
+                {dashboard.topCustomers.map((x) => (
+                  <div
+                    key={x.id}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      padding: "10px 0",
+                      borderBottom: "1px solid #f1f5f9",
+                      fontSize: 14,
+                    }}
+                  >
+                    <span>{x.customer}</span>
+                    <strong>{Number(x.yearlyOpportunity || 0).toLocaleString()} HKD</strong>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div
+              className="two-col-grid"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 20,
+                alignItems: "start",
+              }}
+            >
+              <div style={cardStyle()}>
+                <h3 style={{ marginTop: 0, marginBottom: 16 }}>Upcoming Follow-ups</h3>
+                {dashboard.upcomingFollowups.length === 0 ? (
+                  <div style={{ color: "#6b7280", fontSize: 14 }}>No follow-up found.</div>
+                ) : (
+                  dashboard.upcomingFollowups.map((x) => (
+                    <div
+                      key={x.id}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        padding: "10px 0",
+                        borderBottom: "1px solid #f1f5f9",
+                        fontSize: 14,
+                      }}
+                    >
+                      <span>{x.customer}</span>
+                      <strong>{x.followUp}</strong>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div style={cardStyle()}>
+                <h3 style={{ marginTop: 0, marginBottom: 16 }}>Brand Opportunity Mix</h3>
+                {Object.entries(dashboard.byBrand)
+                  .sort((a, b) => b[1] - a[1])
+                  .slice(0, 5)
+                  .map(([brand, val]) => (
+                    <div key={brand} style={{ marginBottom: 14 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          fontSize: 13,
+                          marginBottom: 6,
+                        }}
+                      >
+                        <span>{brand}</span>
+                        <strong>{Number(val).toLocaleString()} HKD</strong>
+                      </div>
+                      <div
+                        style={{
+                          height: 10,
+                          background: "#e5e7eb",
+                          borderRadius: 999,
+                          overflow: "hidden",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: `${
+                              dashboard.totalOpportunity
+                                ? (val / dashboard.totalOpportunity) * 100
+                                : 0
+                            }%`,
+                            background: "#334155",
+                            height: "100%",
+                            borderRadius: 999,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
               </div>
             </div>
           </div>
