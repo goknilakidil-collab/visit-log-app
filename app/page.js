@@ -48,7 +48,7 @@ const initialLogs = [
     monthlyOpportunity: "120000",
     yearlyOpportunity: "1440000",
     notWorkingReason: "",
-    responsibleChooseKAM: "Göknil Akidil",
+    responsibleKAM: "Göknil Akidil",
     result: "Revised offer to be shared",
     followUp: "2026-04-07",
     notes:
